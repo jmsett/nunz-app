@@ -1,7 +1,7 @@
 /* Nun’z PWA: caché de archivos de la aplicación, nunca datos del repositorio. */
-const CACHE_NAME = 'nunz-app-shell-v9-pwa-1';
+const CACHE_NAME = 'nunz-app-shell-v10-github-1';
 const APP_SHELL = [
-  './', './index.html', './manifest.webmanifest',
+  './', './index.html', './github-sync.js', './manifest.webmanifest',
   './assets/nunz-logo.png',
   './icons/icon-192.png', './icons/icon-512.png',
   './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'
