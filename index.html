@@ -279,13 +279,53 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 #ghSyncPanel input[type=password]{min-width:160px;letter-spacing:.4px}
 #ghSyncPanel .note{margin-top:8px}
 @media(max-width:760px){.gh-badge{font-size:10px;max-width:133px;padding:5px 7px}#ghSyncPanel .controlrow>*{flex:1 1 100%}}
+
+/* v11 · Edición y baja definitiva de vendedores */
+.sellerrow-main{flex:1 1 auto;min-width:0}
+.sellerrow-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.sellerrow .btn.small{min-height:34px}
+.sellerrow .delete-btn{color:#ae3346;border:1px solid #f1c5ca;background:#fff6f7;box-shadow:none}
+.sellerrow .delete-btn:hover{background:#ffe9ed}
+.selleredit{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
+.selleredit input{flex:1 1 185px;min-width:130px;height:40px;border:1px solid #bfd3e4;border-radius:10px;padding:9px 11px;font:inherit;font-size:15px}
+.selleredit-actions{display:flex;gap:6px}
+.delete-dialog{max-width:470px;width:calc(100% - 32px);padding:0;border:1px solid #e5eaf1;border-radius:22px;box-shadow:0 24px 80px rgba(3,37,82,.33);color:var(--deep)}
+.delete-dialog::backdrop{background:rgba(7,31,58,.56);backdrop-filter:blur(3px)}
+.delete-dialog-body{padding:25px}
+.delete-dialog h2{margin:0 0 12px;color:#a5273e;font-size:23px}
+.delete-dialog p{line-height:1.55;margin:10px 0;font-size:14px}
+.delete-dialog .delete-stat{background:#fff5f5;border:1px solid #f3ccd2;color:#7d3443;padding:10px 13px;border-radius:10px;font-size:13px}
+.delete-dialog .field{margin:16px 0}
+.delete-dialog .field input{width:100%;min-height:47px;border:1px solid #c6d9e7;border-radius:10px;padding:10px 12px;font-size:17px}
+.delete-dialog .delete-actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+.delete-dialog .delete-confirm{background:#ae3045;color:white;border:1px solid #ae3045}
+.delete-dialog .delete-confirm:hover{background:#8e2134}
+.delete-dialog .delete-feedback{min-height:19px;color:#b52d44;font-size:12px;margin:4px 0 10px}
+@media(max-width:760px){.sellerrow{align-items:flex-start;flex-wrap:wrap}.sellerrow-actions{margin-left:auto}.sellerrow .btn.small{padding:8px 9px}.selleredit-actions{width:100%}.selleredit-actions .btn{flex:1}}
 </style>
 <link rel="manifest" href="./manifest.webmanifest"/>
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png"/>
 <meta name="application-name" content="Nun’z Ventas"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="description" content="Registro de ventas, ranking y evolución histórica de Nun’z Laboratorios."/>
-<script src="./github-sync.js"></script></head><body><div class="app"><aside class="sidebar"><div class="brand"><img id="brandLogo" alt="Nun’z Laboratorios" src="./assets/nunz-logo.png"/></div><nav id="nav" class="nav" aria-label="Navegación principal"></nav><div class="sidebarfoot">Nun’z Laboratorios<br/>Panel de desempeño comercial<br/>Aplicación web local</div></aside><main class="workspace"><header class="topbar" id="pageHeader"></header><div id="content"></div></main></div><div id="toast" role="status" class="toast"></div><script>(()=>{'use strict';
+<script src="./github-sync.js"></script></head><body><div class="app"><aside class="sidebar"><div class="brand"><img id="brandLogo" alt="Nun’z Laboratorios" src="./assets/nunz-logo.png"/></div><nav id="nav" class="nav" aria-label="Navegación principal"></nav><div class="sidebarfoot">Nun’z Laboratorios<br/>Panel de desempeño comercial<br/>Aplicación web local</div></aside><main class="workspace"><header class="topbar" id="pageHeader"></header><div id="content"></div></main></div><div id="toast" role="status" class="toast"></div>
+<dialog id="deleteSellerDialog" class="delete-dialog" aria-labelledby="deleteDialogTitle">
+  <form id="deleteSellerForm" class="delete-dialog-body">
+    <h2 id="deleteDialogTitle">Eliminar vendedor definitivamente</h2>
+    <p id="deleteDialogDescription"></p>
+    <p class="delete-stat" id="deleteDialogStats"></p>
+    <p><strong>Esta acción también elimina todo su historial de ventas y sus objetivos.</strong> Se sincronizará con GitHub y afectará a los demás dispositivos. Si solo quieres retirarlo del equipo, usa <strong>Archivar</strong>.</p>
+    <div class="field"><label for="deleteSellerVerify">Escribe <strong>ELIMINAR</strong> para confirmar</label>
+      <input id="deleteSellerVerify" type="text" autocapitalize="characters" autocomplete="off" spellcheck="false" required placeholder="ELIMINAR" /></div>
+    <div class="delete-feedback" id="deleteSellerFeedback" role="alert"></div>
+    <div class="delete-actions">
+      <button type="button" class="btn ghost" data-action="cancelDelete">Cancelar</button>
+      <button type="button" class="btn secondary" data-action="backupBeforeDelete">↓ Guardar respaldo</button>
+      <button type="submit" class="btn delete-confirm">Eliminar definitivamente</button>
+    </div>
+  </form>
+</dialog>
+<script>(()=>{'use strict';
 const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const STORAGE='nunz-sales-v2';
 const LEGACY_STORAGE='nunz-sales-v1';
@@ -434,7 +474,7 @@ try{store=JSON.parse(localStorage.getItem(STORAGE)||localStorage.getItem(LEGACY_
 if(!store||!Array.isArray(store.sellers)||typeof store.records!=='object')store={sellers:[],records:{},weeks:{},monthlyGoals:{},weekDrafts:{},drafts:{},demo:false,weeklySchema:'weekly-delta-four-v3',autoBackupOnWeek:true};
 store=migrateStore(store);
 let ui={page:(store.sellers.length?'ranking':'team'),year:today.getFullYear(),month:today.getMonth()+1,week:Math.min(4,Math.ceil(today.getDate()/7)),
-  rankPeriod:'month',mode:'percent',chartPeriod:'monthly',chartStyle:'points',historyMonth:'all',filter:'all',entryIds:[],entryIndex:0};
+  rankPeriod:'month',mode:'percent',chartPeriod:'monthly',chartStyle:'points',historyMonth:'all',filter:'all',entryIds:[],entryIndex:0,editSellerId:null,deleteSellerId:null};
 // The demo shows November 2026 by default; real installations start in the current month.
 if(store.demo){ui.year=2026;ui.month=11;ui.week=3;}
 let toastTimer;
@@ -656,9 +696,71 @@ function history(){
   const width=ui.chartPeriod==='weekly'&&ui.historyMonth==='all'?2100:950;
   $('#content').innerHTML=`<section class="panel"><div class="sectionlead compact"><h2>Progreso Histórico de Ventas</h2><p>Cumplimiento de metas</p></div><div class="chartcontrols"><div class="controlrow chart-filterbar">${ui.chartPeriod!=='annual'?yearSelect():''}${ui.chartPeriod==='weekly'?monthSelect('historyMonth',true):''}<div class="field grow"><label for="sellerFilter">Vendedor</label><select id="sellerFilter"><option value="all">Todo el equipo</option>${store.sellers.map(s=>`<option value="${s.id}" ${ui.filter===s.id?'selected':''}>${esc(s.name)}${s.active?'':' (archivado)'}</option>`).join('')}</select></div></div><div class="controls chart-options"><div class="switchgroup"><span>Período</span>${seg('chartPeriod',[['weekly','Semanal'],['monthly','Mensual'],['annual','Anual']])}</div><div class="switchgroup"><span>Gráfico</span>${seg('chartStyle',[['points','Puntos + línea'],['bars','Barras'],['table','Tabla']])}</div><div class="switchgroup"><span>Mostrar</span>${seg('mode',[['percent','% Cumplimiento'],['amount','Valor total (Q)']])}</div></div></div>${stats([['Ventas del período',money(a.sales)],['Objetivo del período',money(a.goal)],['Cumplimiento',pct(ratio),true]])}<div class="viewhead"><h2>${esc(label)}</h2><div class="footeract"><button class="btn secondary" data-action="exportChart">↓ Descargar PNG</button><button class="btn" data-action="shareChart">Compartir</button></div></div><div class="chartbox">${ui.chartStyle==='table'?historyTable(pts):`<div class="chartscroll ${width>1000?'wide':''}">${chartSVG(pts,width,420)}</div>`}<div class="chartlegend" style="${ui.chartStyle==='table'?'display:none;':''}"><span><i class="${ui.chartStyle==='bars'?'legendbar':'legendline'}"></i> ${ui.mode==='percent'?'Cumplimiento':'Ventas'}</span>${ui.mode==='percent'?'<span><i class="legendgoal"></i> Meta 100%</span><span><i class="legendlime"></i> Sobre meta</span>':'<span><i class="legendlime"></i> Objetivo del período (Q)</span>'}</div></div><p class="hint">Sin datos = período sin reporte. Aquí se muestran incrementos semanales (no acumulados). Los meses y años suman esas semanas; la meta mensual cuenta una sola vez. En la gráfica semanal, cada objetivo equivale a un cuarto de la meta mensual y el porcentaje se calcula contra ese cuarto. Los registros mensuales antiguos sin desglose sólo aparecen por mes o año. ${ui.chartPeriod==='weekly'?'Siempre se utilizan cuatro semanas por mes: 1–7, 8–14, 15–21 y 22–fin de mes.':''}</p></section>`;
 }
+function sellerRowHTML(s){
+  const editing=ui.editSellerId===s.id;
+  const editForm=editing?`<form id="editSellerForm" class="selleredit" data-seller-id="${esc(s.id)}">
+      <input id="editedSellerName" aria-label="Nuevo nombre de ${esc(s.name)}" maxlength="90" required value="${esc(s.name)}" />
+      <div class="selleredit-actions"><button class="btn small" type="submit">Guardar</button><button class="btn small ghost" type="button" data-cancel-edit="1">Cancelar</button></div>
+    </form>`:`<div class="sellername">${esc(s.name)}</div><div class="tiny">${s.active?'Vendedor activo':'Vendedor archivado'}</div>`;
+  return `<div class="sellerrow ${s.active?'':'archived'}"><div class="sellerrow-main">${editForm}</div>
+    <div class="sellerrow-actions">
+      ${editing?'':`<button type="button" class="btn small secondary" data-edit-seller="${esc(s.id)}" aria-label="Editar nombre de ${esc(s.name)}">✎ Editar</button>`}
+      ${s.active?`<button type="button" class="btn small warn" data-archive="${esc(s.id)}">Archivar</button>`:`<button type="button" class="btn small secondary" data-restore="${esc(s.id)}">Reactivar</button>`}
+      <button type="button" class="btn small delete-btn" data-delete-seller="${esc(s.id)}" aria-label="Eliminar definitivamente a ${esc(s.name)}">Eliminar</button>
+    </div></div>`;
+}
 function team(){
-  title('Equipo de ventas','Administrar integrantes sin perder el historial');
-  $('#content').innerHTML=`${cloud?cloud.panelHTML():''}<section class="panel"><h2>Agregar vendedor</h2><form id="addSeller" class="controlrow"><div class="field grow"><label for="sellerName">Nombre completo</label><input id="sellerName" type="text" maxlength="90" placeholder="Ej. Juan Pérez" required/></div><button class="btn" type="submit">+ Añadir al equipo</button></form>${Object.entries(store.monthlyGoalReview||{}).some(([month,ids])=>ids.some(id=>!(Number((store.monthlyGoals[month]||{})[id])>0)))?`<div class="note warning">Algunos datos semanales importados no permiten reconstruir la meta mensual. Abre esos meses en Registrar ventas y confirma las metas antes de confiar en los porcentajes.</div>`:''}<div class="note">Archivar un vendedor lo retira de nuevas tarjetas, pero conserva sus ventas para el historial. Puedes reactivarlo después.</div></section><section class="panel"><h2>Miembros activos (${active().length})</h2>${active().map(s=>`<div class="sellerrow"><div><div class="sellername">${esc(s.name)}</div><div class="tiny">Vendedor activo</div></div><button type="button" class="btn small warn" data-archive="${esc(s.id)}">Archivar</button></div>`).join('')||'<div class="empty">No hay vendedores activos.</div>'}</section>${store.sellers.some(s=>!s.active)?`<section class="panel"><h2>Vendedores archivados</h2>${store.sellers.filter(s=>!s.active).map(s=>`<div class="sellerrow archived"><div class="sellername">${esc(s.name)}</div><button class="btn small secondary" data-restore="${esc(s.id)}">Reactivar</button></div>`).join('')}</section>`:''}<section class="panel"><h2>Respaldo y transferencia</h2><p class="helptext">Los datos se guardan localmente. Si activas GitHub, también se sincronizan con el repositorio privado cuando hay internet. Conserva la opción de exportar un JSON independiente para emergencias.</p><div class="backupsetting"><label><input type="checkbox" id="autoBackup" ${store.autoBackupOnWeek!==false?'checked':''}/> Descargar un respaldo JSON automáticamente al completar cada semana</label><small>El archivo se nombra únicamente con la fecha del último registro (AAAA-MM-DD.json). Safari puede solicitar autorización; revisa Descargas.</small></div><div class="footeract"><button class="btn secondary" data-action="backup">↓ Exportar respaldo JSON</button><label for="restoreFile" class="btn ghost" style="cursor:pointer">↑ Importar respaldo JSON</label><input id="restoreFile" class="fileinput" type="file" accept=".json,application/json"/></div></section>${store.demo?`<section class="panel"><h2>Comenzar con información real</h2><p class="helptext">Los vendedores y cifras actuales son ficticios. Borra la demostración antes de empezar a usar la aplicación en Nun’z.</p><button class="btn warn" data-action="clearDemo">Eliminar datos de prueba</button></section>`:''}`;
+  title('Equipo de ventas','Administrar vendedores, nombres e historial');
+  $('#content').innerHTML=`${cloud?cloud.panelHTML():''}<section class="panel"><h2>Agregar vendedor</h2><form id="addSeller" class="controlrow"><div class="field grow"><label for="sellerName">Nombre completo</label><input id="sellerName" type="text" maxlength="90" placeholder="Ej. Juan Pérez" required/></div><button class="btn" type="submit">+ Añadir al equipo</button></form>${Object.entries(store.monthlyGoalReview||{}).some(([month,ids])=>ids.some(id=>!(Number((store.monthlyGoals[month]||{})[id])>0)))?`<div class="note warning">Algunos datos semanales importados no permiten reconstruir la meta mensual. Abre esos meses en Registrar ventas y confirma las metas antes de confiar en los porcentajes.</div>`:''}<div class="note">Puedes editar nombres sin perder su historial. <strong>Archivar</strong> conserva todos sus registros. <strong>Eliminar</strong> borra también las ventas y metas asociadas a ese vendedor, previa confirmación.</div></section>
+    <section class="panel"><h2>Miembros activos (${active().length})</h2>${active().map(sellerRowHTML).join('')||'<div class="empty">No hay vendedores activos.</div>'}</section>
+    ${store.sellers.some(s=>!s.active)?`<section class="panel"><h2>Vendedores archivados</h2>${store.sellers.filter(s=>!s.active).map(sellerRowHTML).join('')}</section>`:''}
+    <section class="panel"><h2>Respaldo y transferencia</h2><p class="helptext">Los datos se guardan localmente. Si activas GitHub, también se sincronizan con el repositorio privado cuando hay internet. Conserva la opción de exportar un JSON independiente para emergencias.</p><div class="backupsetting"><label><input type="checkbox" id="autoBackup" ${store.autoBackupOnWeek!==false?'checked':''}/> Descargar un respaldo JSON automáticamente al completar cada semana</label><small>El archivo se nombra únicamente con la fecha del último registro (AAAA-MM-DD.json). Safari puede solicitar autorización; revisa Descargas.</small></div><div class="footeract"><button class="btn secondary" data-action="backup">↓ Exportar respaldo JSON</button><label for="restoreFile" class="btn ghost" style="cursor:pointer">↑ Importar respaldo JSON</label><input id="restoreFile" class="fileinput" type="file" accept=".json,application/json"/></div></section>${store.demo?`<section class="panel"><h2>Comenzar con información real</h2><p class="helptext">Los vendedores y cifras actuales son ficticios. Borra la demostración antes de empezar a usar la aplicación en Nun’z.</p><button class="btn warn" data-action="clearDemo">Eliminar datos de prueba</button></section>`:''}`;
+}
+function sellerDataCounts(id){
+  const count=key=>Object.values(store[key]||{}).filter(obj=>obj && Object.prototype.hasOwnProperty.call(obj,id)).length;
+  return {semanas:count('weeks'),mensuales:count('records'),metas:count('monthlyGoals'),borradores:count('weekDrafts')+count('drafts')};
+}
+function openDeleteSeller(id){
+  const s=seller(id);if(!s)return;
+  const d=$('#deleteSellerDialog');ui.deleteSellerId=id;
+  const c=sellerDataCounts(id);
+  $('#deleteDialogDescription').textContent=`Vas a eliminar a «${s.name}» del equipo de ventas.`;
+  $('#deleteDialogStats').textContent=`Se borrarán: ${c.semanas} registros semanales, ${c.mensuales} registros mensuales antiguos, ${c.metas} objetivos mensuales y ${c.borradores} borradores.`;
+  $('#deleteSellerVerify').value='';$('#deleteSellerFeedback').textContent='';
+  d.showModal();$('#deleteSellerVerify').focus();
+}
+function removeSellerFromData(id){
+  const stores=['records','weeks','monthlyGoals','weekDrafts','drafts'];
+  for(const key of stores){
+    const sections=store[key]||{};
+    for(const [period,people] of Object.entries(sections)){
+      if(!people||typeof people!=='object'||Array.isArray(people))continue;
+      delete people[id];
+      if(!Object.keys(people).length)delete sections[period];
+    }
+  }
+  for(const [month,ids] of Object.entries(store.monthlyGoalReview||{})){
+    if(!Array.isArray(ids))continue;
+    store.monthlyGoalReview[month]=ids.filter(v=>v!==id);
+    if(!store.monthlyGoalReview[month].length)delete store.monthlyGoalReview[month];
+  }
+  store.sellers=store.sellers.filter(s=>s.id!==id);
+  ui.entryIds=ui.entryIds.filter(x=>x!==id);
+  ui.entryIndex=Math.min(ui.entryIndex,Math.max(0,ui.entryIds.length-1));
+  if(ui.filter===id)ui.filter='all';
+  if(ui.editSellerId===id)ui.editSellerId=null;
+}
+function confirmDeleteSeller(){
+  const id=ui.deleteSellerId,s=seller(id);if(!s){$('#deleteSellerDialog').close();return;}
+  if($('#deleteSellerVerify').value.trim().toLocaleUpperCase('es')!=='ELIMINAR'){
+    $('#deleteSellerFeedback').textContent='Escribe ELIMINAR exactamente para confirmar.';
+    $('#deleteSellerVerify').focus();return;
+  }
+  const old=structuredClone(store);
+  removeSellerFromData(id);
+  if(!save()){store=old;return;}
+  $('#deleteSellerDialog').close();ui.deleteSellerId=null;
+  render();showToast(`«${s.name}» eliminado junto con su historial. ${cloud?.cfg?.initialized?'Sincronización con GitHub pendiente.':'Datos guardados localmente.'}`);
 }
 function entryKey(){return weekKey(ui.year,ui.month,ui.week);}
 function previousCumulative(id,y,m,w){return cumulativeThrough(id,y,m,w-1);}
@@ -809,10 +911,15 @@ function rerender(){if(ui.page==='entry')startEntry();else render();}
 document.addEventListener('click',e=>{
   const page=e.target.closest('[data-page]');if(page){ui.page=page.dataset.page;if(ui.page==='entry'){Object.assign(ui,currentPeriod());startEntry();}else render();cloud?.schedule(600);return;}
   const set=e.target.closest('[data-set]');if(set){ui[set.dataset.set]=set.dataset.value;render();return;}
+  const edit=e.target.closest('[data-edit-seller]');if(edit){ui.editSellerId=edit.dataset.editSeller;render();$('#editedSellerName')?.focus();$('#editedSellerName')?.select();return;}
+  if(e.target.closest('[data-cancel-edit]')){ui.editSellerId=null;render();return;}
+  const del=e.target.closest('[data-delete-seller]');if(del){openDeleteSeller(del.dataset.deleteSeller);return;}
   const arch=e.target.closest('[data-archive]');if(arch){const s=seller(arch.dataset.archive);if(s&&confirm(`¿Archivar a ${s.name}? Se conservará su historial.`)){s.active=false;save();render();}return;}
   const re=e.target.closest('[data-restore]');if(re){let s=seller(re.dataset.restore);if(s){s.active=true;save();render();}return;}
   const action=e.target.closest('[data-action]');if(!action)return;
   switch(action.dataset.action){
+    case 'cancelDelete':$('#deleteSellerDialog').close();ui.deleteSellerId=null;break;
+    case 'backupBeforeDelete':backup();break;
     case 'ghLink':{
       const v=$('#ghToken')?.value?.trim();const mode=$('#ghMode')?.value;
       if(!v){showToast('Pega el token únicamente en tu propia aplicación');break;}
@@ -844,12 +951,23 @@ document.addEventListener('change',e=>{
 });
 document.addEventListener('input',e=>{if(e.target.matches('#goal,#sales'))draftEntry();});
 document.addEventListener('submit',e=>{
+ if(e.target.id==='deleteSellerForm'){e.preventDefault();confirmDeleteSeller();return;}
+ if(e.target.id==='editSellerForm'){
+   e.preventDefault();
+   const id=e.target.dataset.sellerId,s=seller(id),name=$('#editedSellerName')?.value.trim();
+   if(!s)return;
+   if(!name){showToast('El nombre no puede estar vacío');return;}
+   if(store.sellers.some(x=>x.id!==id&&x.name.toLocaleLowerCase('es')===name.toLocaleLowerCase('es'))){showToast('Ya existe otro vendedor con ese nombre');return;}
+   if(s.name!==name){const before=s.name;s.name=name;if(!save()){s.name=before;return;}}
+   ui.editSellerId=null;render();showToast('Nombre actualizado sin modificar el historial');return;
+ }
  if(e.target.id!=='addSeller')return;e.preventDefault();let name=$('#sellerName').value.trim();
  if(!name){showToast('Escribe un nombre');return;}
  if(store.sellers.some(s=>s.name.toLocaleLowerCase('es')===name.toLocaleLowerCase('es'))){showToast('El vendedor ya existe. Puedes reactivarlo.');return;}
  store.sellers.push({id:'v'+Date.now().toString(36)+Math.floor(Math.random()*10000).toString(36),name,active:true});save();render();showToast('Vendedor agregado');
 });
 
+$('#deleteSellerDialog').addEventListener('close',()=>{ui.deleteSellerId=null;});
 cloud=new NunzGitHubSync({
   getState:()=>store,
   replaceState:resetStateFromCloud,

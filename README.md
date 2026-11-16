@@ -1,4 +1,13 @@
-# Nun’z Ventas — PWA con sincronización de GitHub (prototipo v10)
+## Novedades v11: gestión de vendedores
+
+- **Editar:** cambia el nombre de un vendedor sin alterar su identificador ni el historial vinculado. Impide duplicados.
+- **Archivar / Reactivar:** conserva las ventas y objetivos.
+- **Eliminar:** disponible para activos y archivados. Abre un diálogo con el recuento de registros afectados, exige escribir `ELIMINAR` y permite exportar un JSON previo. Borra entradas del vendedor en `sellers`, `weeks`, `records`, `monthlyGoals`, `weekDrafts`, `drafts` y `monthlyGoalReview`.
+- La baja se guarda en el dispositivo y se sincroniza con GitHub por el mecanismo de la v10. No se fusionan automáticamente ediciones simultáneas: los conflictos siguen bloqueados por SHA.
+- Antes de eliminar información real, verifica que se muestre **✓ Sincronizado con GitHub** y guarda una copia JSON externa si deseas recuperación sencilla.
+- Después de publicar la v11, abre la PWA con internet para recibir el nuevo service worker y comprueba la edición/baja con un vendedor ficticio.
+
+# Nun’z Ventas — PWA con sincronización de GitHub (prototipo v11)
 
 Esta versión agrega sincronización opcional con **dos repositorios separados**:
 
