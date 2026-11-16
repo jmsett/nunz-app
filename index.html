@@ -302,13 +302,35 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .delete-dialog .delete-confirm:hover{background:#8e2134}
 .delete-dialog .delete-feedback{min-height:19px;color:#b52d44;font-size:12px;margin:4px 0 10px}
 @media(max-width:760px){.sellerrow{align-items:flex-start;flex-wrap:wrap}.sellerrow-actions{margin-left:auto}.sellerrow .btn.small{padding:8px 9px}.selleredit-actions{width:100%}.selleredit-actions .btn{flex:1}}
+
+/* v12 — El equipo es el foco; ajustes y backups se muestran solo al expandir. */
+.sync-footer{margin:28px 0 0;display:flex;justify-content:flex-end;align-items:center;min-height:27px}
+.sync-footer .gh-badge{max-width:none;font-size:11px;background:transparent;border:0;color:#8195a9;box-shadow:none;padding:3px 4px;font-weight:600}
+.sync-footer .gh-badge[data-state="attention"]{color:#a86228;background:#fff8eb;border:1px solid #f3dfb8;padding:5px 10px}
+.admin-details{margin-top:17px;border:1px solid var(--line);border-radius:16px;background:#fff;color:var(--ink);overflow:hidden}
+.admin-details>summary{display:flex;align-items:center;gap:9px;cursor:pointer;padding:17px 19px;font-size:13px;font-weight:740;color:#6b7e98;list-style:none;user-select:none}
+.admin-details>summary::-webkit-details-marker{display:none}
+.admin-details>summary:hover{background:#f7faff}
+.admin-details .admin-gear{font-size:16px;color:#607e9a}
+.admin-details .admin-chevron{margin-left:auto;font-size:21px;transform:rotate(0);transition:transform .16s}
+.admin-details[open] .admin-chevron{transform:rotate(180deg)}
+.admin-content{padding:0 14px 14px}
+.admin-content>.panel{box-shadow:none;border-radius:12px;margin:10px 0 0;padding:15px;background:#fbfdff}
+.admin-content>.panel h2{font-size:16px;margin:0 0 8px}
+.admin-content .helptext{font-size:12px;margin:0 0 12px}
+.admin-content .footeract{gap:7px}
+.admin-content .btn{min-height:38px;font-size:12px;padding:9px 12px}
+.admin-danger{margin-top:14px;color:#9c6171;font-size:12px}
+.admin-danger summary{cursor:pointer;list-style-position:inside}
+.admin-danger .btn{margin-top:9px}
+@media(max-width:760px){.sync-footer{margin:16px 0 0;justify-content:center}.admin-details>summary{padding:13px 14px}.admin-content{padding:0 10px 10px}.admin-content>.panel{padding:13px}}
 </style>
 <link rel="manifest" href="./manifest.webmanifest"/>
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png"/>
 <meta name="application-name" content="Nun’z Ventas"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="description" content="Registro de ventas, ranking y evolución histórica de Nun’z Laboratorios."/>
-<script src="./github-sync.js"></script></head><body><div class="app"><aside class="sidebar"><div class="brand"><img id="brandLogo" alt="Nun’z Laboratorios" src="./assets/nunz-logo.png"/></div><nav id="nav" class="nav" aria-label="Navegación principal"></nav><div class="sidebarfoot">Nun’z Laboratorios<br/>Panel de desempeño comercial<br/>Aplicación web local</div></aside><main class="workspace"><header class="topbar" id="pageHeader"></header><div id="content"></div></main></div><div id="toast" role="status" class="toast"></div>
+<script src="./github-sync.js"></script></head><body><div class="app"><aside class="sidebar"><div class="brand"><img id="brandLogo" alt="Nun’z Laboratorios" src="./assets/nunz-logo.png"/></div><nav id="nav" class="nav" aria-label="Navegación principal"></nav><div class="sidebarfoot">Nun’z Laboratorios<br/>Panel de desempeño comercial<br/>Aplicación web local</div></aside><main class="workspace"><header class="topbar" id="pageHeader"></header><div id="content"></div><footer id="syncFooter" class="sync-footer" aria-live="polite"><span class="gh-badge" id="ghBadge">Datos guardados</span></footer></main></div><div id="toast" role="status" class="toast"></div>
 <dialog id="deleteSellerDialog" class="delete-dialog" aria-labelledby="deleteDialogTitle">
   <form id="deleteSellerForm" class="delete-dialog-body">
     <h2 id="deleteDialogTitle">Eliminar vendedor definitivamente</h2>
@@ -474,13 +496,16 @@ try{store=JSON.parse(localStorage.getItem(STORAGE)||localStorage.getItem(LEGACY_
 if(!store||!Array.isArray(store.sellers)||typeof store.records!=='object')store={sellers:[],records:{},weeks:{},monthlyGoals:{},weekDrafts:{},drafts:{},demo:false,weeklySchema:'weekly-delta-four-v3',autoBackupOnWeek:true};
 store=migrateStore(store);
 let ui={page:(store.sellers.length?'ranking':'team'),year:today.getFullYear(),month:today.getMonth()+1,week:Math.min(4,Math.ceil(today.getDate()/7)),
-  rankPeriod:'month',mode:'percent',chartPeriod:'monthly',chartStyle:'points',historyMonth:'all',filter:'all',entryIds:[],entryIndex:0,editSellerId:null,deleteSellerId:null};
+  rankPeriod:'month',mode:'percent',chartPeriod:'monthly',chartStyle:'points',historyMonth:'all',filter:'all',entryIds:[],entryIndex:0,editSellerId:null,deleteSellerId:null,adminExpanded:false};
 // The demo shows November 2026 by default; real installations start in the current month.
 if(store.demo){ui.year=2026;ui.month=11;ui.week=3;}
 let toastTimer;
 let cloud;
+function isReadOnly(){return !!(cloud && cloud.cfg.linked && cloud.cfg.mode==='read');}
+function requireEditor(){if(isReadOnly()){showToast('Este dispositivo está en modo consulta. Para conservar cambios, utiliza el dispositivo de registro.');return false;}return true;}
 // Keeping a local copy always comes first. Cloud writes are eventual and guarded by SHA.
 const save=(sync=true)=>{
+  if(sync && !requireEditor()) return false;
   try{localStorage.setItem(STORAGE,JSON.stringify(store));if(sync&&cloud)cloud.changed();return true}
   catch{showToast('No se pudo guardar: descarga un respaldo y revisa el almacenamiento');return false}
 };
@@ -554,8 +579,8 @@ const icon=(name)=>({
  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
  users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6m1 4a5 5 0 0 1 4 5"/></svg>'
 })[name];
-function nav(){const data=[['ranking','trophy','Ranking de ventas'],['history','chart','Progreso histórico'],['entry','edit','Registrar ventas'],['team','users','Equipo de ventas']];$('#nav').innerHTML=data.map(([id,i,label])=>`<button class="navbtn ${ui.page===id?'active':''}" data-page="${id}" aria-current="${ui.page===id?'page':'false'}">${icon(i)}<span>${label}</span></button>`).join('');}
-function title(t,sub){$('#pageHeader').innerHTML=`<div><div class="kicker">NUN’Z · DESEMPEÑO COMERCIAL</div><h1>${esc(t)}</h1><p>${esc(sub)}</p></div><span class="gh-badge" id="ghBadge">${cloud?esc(cloud.label()):'Solo en este dispositivo'}</span>${store.demo?'<span class="demo">Datos ficticios</span>':''}`;}
+function nav(){const data=[['ranking','trophy','Ranking de ventas'],['history','chart','Progreso histórico'],['entry','edit','Registrar ventas'],['team','users','Equipo de ventas']];$('#nav').innerHTML=data.map(([id,i,label])=>`<button class="navbtn ${ui.page===id?'active':''}" data-page="${id}" aria-current="${ui.page===id?'page':'false'}" ${id==='entry'&&isReadOnly()?'disabled title="Solo disponible en modo registro"':''}>${icon(i)}<span>${label}</span></button>`).join('');}
+function title(t,sub){$('#pageHeader').innerHTML=`<div><div class="kicker">NUN’Z · DESEMPEÑO COMERCIAL</div><h1>${esc(t)}</h1><p>${esc(sub)}</p></div>${store.demo?'<span class="demo">Datos ficticios</span>':''}`;}
 function yearSelect(){const years=[...new Set([...Object.keys(store.records||{}),...Object.keys(store.weeks||{})].map(k=>Number(k.slice(0,4))).filter(Number.isFinite)),ui.year];for(let y=Math.min(ui.year-1,2024);y<=Math.max(ui.year+2,new Date().getFullYear()+1);y++)years.push(y);return `<div class="field"><label for="year">Año</label><select id="year">${[...new Set(years)].sort((a,b)=>b-a).map(y=>`<option value="${y}" ${ui.year===y?'selected':''}>${y}</option>`).join('')}</select></div>`;}
 function monthSelect(which='month',all=false){const value=which==='historyMonth'?ui.historyMonth:String(ui.month);return `<div class="field"><label for="${which}">Mes</label><select id="${which}">${all?`<option value="all" ${value==='all'?'selected':''}>Todo el año</option>`:''}${MONTHS.map((m,i)=>`<option value="${i+1}" ${String(value)===String(i+1)?'selected':''}>${m}</option>`).join('')}</select></div>`;}
 function weekSelect(){ui.week=Math.min(ui.week,weekCount(ui.year,ui.month));return `<div class="field"><label for="week">Semana</label><select id="week">${Array.from({length:weekCount(ui.year,ui.month)},(_,i)=>{let w=i+1;return `<option value="${w}" ${ui.week===w?'selected':''}>S${w} · ${dateRange(ui.year,ui.month,w).split(' de ')[0]}</option>`}).join('')}</select></div>`;}
@@ -598,7 +623,7 @@ function ranking(){
     return `<div class="rankitem other"><div class="ranknum">${i+1}</div><div class="rankname">${esc(r.name)}</div>${progress(r.percent)}<div class="rankmetric">${value(r)}</div></div>`;
   }).join('');
   let metricCards=ui.mode==='percent'?[['Cumplimiento del equipo',pct(teamPct),true],['Vendedores evaluados',String(rows.length)],['Superaron la meta',String(rows.filter(r=>r.percent>100).length)]]:[['Ventas del equipo',money(team.sales)],['Vendedores evaluados',String(rows.length)],['Venta más alta',money(topSale===1?0:topSale)]];
-  $('#content').innerHTML=`<section class="panel"><div class="controlrow rank-filters">${yearSelect()}${ui.rankPeriod==='annual'?'':monthSelect()}<div class="field report-field"><label for="rankPeriod">Informe</label><select id="rankPeriod"><option value="week" ${ui.rankPeriod==='week'?'selected':''}>Semanal</option><option value="month" ${ui.rankPeriod==='month'?'selected':''}>Mensual</option><option value="annual" ${ui.rankPeriod==='annual'?'selected':''}>Anual</option></select></div>${ui.rankPeriod==='week'?weekSelect():''}</div><div class="sectionlead"><h2>Ranking de Ventas</h2><span class="periodpill">${esc(titlePeriod)}</span><p>${ui.rankPeriod==='annual'?'Objetivos cumplidos durante el año · meses registrados':ui.mode==='percent'?(ui.rankPeriod==='week'?'Acumulado frente a la meta mensual':'Cumplimiento de metas del equipo'):(ui.rankPeriod==='week'?'Ventas acumuladas del mes':'Ventas realizadas del equipo')}</p></div><div class="viewhead"><div class="switchgroup"><span>Visualizar</span>${seg('mode',[['percent','% Cumplimiento'],['amount','Valor total (Q)']])}</div><div class="footeract"><button class="btn secondary" data-action="exportRank">↓ Descargar PNG</button><button class="btn ghost" data-action="backup">↓ Respaldo JSON</button><button class="btn" data-action="shareRank">Compartir</button></div></div>${rows.length?`${stats(metricCards)}<div class="ranklist">${list}</div><div class="footerquote">¡Sigamos avanzando!</div><div class="footercurve"></div><p class="hint">${ui.rankPeriod==='annual'?'El cumplimiento anual considera las ventas y metas de los meses que tienen reportes, sin contar dos veces un objetivo mensual. Los meses aún sin reporte no se incluyen en el porcentaje.':ui.mode==='percent'?'Cada semana compara el acumulado con la meta mensual completa. El amarillo cubre el excedente superior al 100% desde la derecha hacia la izquierda.':'Las cifras se muestran en Q; las barras siempre representan el cumplimiento respecto al objetivo de cada vendedor. El amarillo destaca lo que supera el 100%.'}</p>`:`<div class="empty"><strong>Aún no hay datos para ${esc(titlePeriod)}.</strong>Registra las ventas semanales para generar el ranking.<p><button class="btn" data-page="entry">Registrar ventas</button></p></div>`}</section>`;
+  $('#content').innerHTML=`<section class="panel"><div class="controlrow rank-filters">${yearSelect()}${ui.rankPeriod==='annual'?'':monthSelect()}<div class="field report-field"><label for="rankPeriod">Informe</label><select id="rankPeriod"><option value="week" ${ui.rankPeriod==='week'?'selected':''}>Semanal</option><option value="month" ${ui.rankPeriod==='month'?'selected':''}>Mensual</option><option value="annual" ${ui.rankPeriod==='annual'?'selected':''}>Anual</option></select></div>${ui.rankPeriod==='week'?weekSelect():''}</div><div class="sectionlead"><h2>Ranking de Ventas</h2><span class="periodpill">${esc(titlePeriod)}</span><p>${ui.rankPeriod==='annual'?'Objetivos cumplidos durante el año · meses registrados':ui.mode==='percent'?(ui.rankPeriod==='week'?'Acumulado frente a la meta mensual':'Cumplimiento de metas del equipo'):(ui.rankPeriod==='week'?'Ventas acumuladas del mes':'Ventas realizadas del equipo')}</p></div><div class="viewhead"><div class="switchgroup"><span>Visualizar</span>${seg('mode',[['percent','% Cumplimiento'],['amount','Valor total (Q)']])}</div><div class="footeract"><button class="btn secondary" data-action="exportRank">↓ Descargar PNG</button><button class="btn" data-action="shareRank">Compartir</button></div></div>${rows.length?`${stats(metricCards)}<div class="ranklist">${list}</div><div class="footerquote">¡Sigamos avanzando!</div><div class="footercurve"></div><p class="hint">${ui.rankPeriod==='annual'?'El cumplimiento anual considera las ventas y metas de los meses que tienen reportes, sin contar dos veces un objetivo mensual. Los meses aún sin reporte no se incluyen en el porcentaje.':ui.mode==='percent'?'Cada semana compara el acumulado con la meta mensual completa. El amarillo cubre el excedente superior al 100% desde la derecha hacia la izquierda.':'Las cifras se muestran en Q; las barras siempre representan el cumplimiento respecto al objetivo de cada vendedor. El amarillo destaca lo que supera el 100%.'}</p>`:`<div class="empty"><strong>Aún no hay datos para ${esc(titlePeriod)}.</strong>Registra las ventas semanales para generar el ranking.<p><button class="btn" data-page="entry">Registrar ventas</button></p></div>`}</section>`;
 }
 function series(){
   const toPoint=(label,rows)=>{let a=aggregate(filterRows(rows));return {label,sales:a.sales,goal:a.goal,value:a.goal?(ui.mode==='percent'?100*a.sales/a.goal:a.sales):null};};
@@ -697,30 +722,51 @@ function history(){
   $('#content').innerHTML=`<section class="panel"><div class="sectionlead compact"><h2>Progreso Histórico de Ventas</h2><p>Cumplimiento de metas</p></div><div class="chartcontrols"><div class="controlrow chart-filterbar">${ui.chartPeriod!=='annual'?yearSelect():''}${ui.chartPeriod==='weekly'?monthSelect('historyMonth',true):''}<div class="field grow"><label for="sellerFilter">Vendedor</label><select id="sellerFilter"><option value="all">Todo el equipo</option>${store.sellers.map(s=>`<option value="${s.id}" ${ui.filter===s.id?'selected':''}>${esc(s.name)}${s.active?'':' (archivado)'}</option>`).join('')}</select></div></div><div class="controls chart-options"><div class="switchgroup"><span>Período</span>${seg('chartPeriod',[['weekly','Semanal'],['monthly','Mensual'],['annual','Anual']])}</div><div class="switchgroup"><span>Gráfico</span>${seg('chartStyle',[['points','Puntos + línea'],['bars','Barras'],['table','Tabla']])}</div><div class="switchgroup"><span>Mostrar</span>${seg('mode',[['percent','% Cumplimiento'],['amount','Valor total (Q)']])}</div></div></div>${stats([['Ventas del período',money(a.sales)],['Objetivo del período',money(a.goal)],['Cumplimiento',pct(ratio),true]])}<div class="viewhead"><h2>${esc(label)}</h2><div class="footeract"><button class="btn secondary" data-action="exportChart">↓ Descargar PNG</button><button class="btn" data-action="shareChart">Compartir</button></div></div><div class="chartbox">${ui.chartStyle==='table'?historyTable(pts):`<div class="chartscroll ${width>1000?'wide':''}">${chartSVG(pts,width,420)}</div>`}<div class="chartlegend" style="${ui.chartStyle==='table'?'display:none;':''}"><span><i class="${ui.chartStyle==='bars'?'legendbar':'legendline'}"></i> ${ui.mode==='percent'?'Cumplimiento':'Ventas'}</span>${ui.mode==='percent'?'<span><i class="legendgoal"></i> Meta 100%</span><span><i class="legendlime"></i> Sobre meta</span>':'<span><i class="legendlime"></i> Objetivo del período (Q)</span>'}</div></div><p class="hint">Sin datos = período sin reporte. Aquí se muestran incrementos semanales (no acumulados). Los meses y años suman esas semanas; la meta mensual cuenta una sola vez. En la gráfica semanal, cada objetivo equivale a un cuarto de la meta mensual y el porcentaje se calcula contra ese cuarto. Los registros mensuales antiguos sin desglose sólo aparecen por mes o año. ${ui.chartPeriod==='weekly'?'Siempre se utilizan cuatro semanas por mes: 1–7, 8–14, 15–21 y 22–fin de mes.':''}</p></section>`;
 }
 function sellerRowHTML(s){
-  const editing=ui.editSellerId===s.id;
+  const readonly=isReadOnly();
+  const editing=!readonly && ui.editSellerId===s.id;
   const editForm=editing?`<form id="editSellerForm" class="selleredit" data-seller-id="${esc(s.id)}">
       <input id="editedSellerName" aria-label="Nuevo nombre de ${esc(s.name)}" maxlength="90" required value="${esc(s.name)}" />
       <div class="selleredit-actions"><button class="btn small" type="submit">Guardar</button><button class="btn small ghost" type="button" data-cancel-edit="1">Cancelar</button></div>
     </form>`:`<div class="sellername">${esc(s.name)}</div><div class="tiny">${s.active?'Vendedor activo':'Vendedor archivado'}</div>`;
   return `<div class="sellerrow ${s.active?'':'archived'}"><div class="sellerrow-main">${editForm}</div>
-    <div class="sellerrow-actions">
+    ${readonly?'':`<div class="sellerrow-actions">
       ${editing?'':`<button type="button" class="btn small secondary" data-edit-seller="${esc(s.id)}" aria-label="Editar nombre de ${esc(s.name)}">✎ Editar</button>`}
       ${s.active?`<button type="button" class="btn small warn" data-archive="${esc(s.id)}">Archivar</button>`:`<button type="button" class="btn small secondary" data-restore="${esc(s.id)}">Reactivar</button>`}
       <button type="button" class="btn small delete-btn" data-delete-seller="${esc(s.id)}" aria-label="Eliminar definitivamente a ${esc(s.name)}">Eliminar</button>
-    </div></div>`;
+    </div>`}</div>`;
 }
 function team(){
-  title('Equipo de ventas','Administrar vendedores, nombres e historial');
-  $('#content').innerHTML=`${cloud?cloud.panelHTML():''}<section class="panel"><h2>Agregar vendedor</h2><form id="addSeller" class="controlrow"><div class="field grow"><label for="sellerName">Nombre completo</label><input id="sellerName" type="text" maxlength="90" placeholder="Ej. Juan Pérez" required/></div><button class="btn" type="submit">+ Añadir al equipo</button></form>${Object.entries(store.monthlyGoalReview||{}).some(([month,ids])=>ids.some(id=>!(Number((store.monthlyGoals[month]||{})[id])>0)))?`<div class="note warning">Algunos datos semanales importados no permiten reconstruir la meta mensual. Abre esos meses en Registrar ventas y confirma las metas antes de confiar en los porcentajes.</div>`:''}<div class="note">Puedes editar nombres sin perder su historial. <strong>Archivar</strong> conserva todos sus registros. <strong>Eliminar</strong> borra también las ventas y metas asociadas a ese vendedor, previa confirmación.</div></section>
+  title('Equipo de ventas',isReadOnly()?'Consultar vendedores del equipo':'Administrar vendedores y nombres');
+  const readonly=isReadOnly();
+  const monthReview=Object.entries(store.monthlyGoalReview||{}).some(([month,ids])=>ids.some(id=>!(Number((store.monthlyGoals[month]||{})[id])>0)));
+  const addPanel=readonly?`<p class="note">Este dispositivo está en <strong>modo consulta</strong>. Puedes revisar el equipo y los resultados; los cambios se realizan desde un dispositivo con permisos de registro.</p>`:`<form id="addSeller" class="controlrow"><div class="field grow"><label for="sellerName">Nombre completo</label><input id="sellerName" type="text" maxlength="90" placeholder="Ej. Juan Pérez" required/></div><button class="btn" type="submit">+ Añadir al equipo</button></form>`;
+  $('#content').innerHTML=`
+    <section class="panel"><h2>${readonly?'Equipo de ventas':'Agregar vendedor'}</h2>${addPanel}
+      ${monthReview?`<div class="note warning">Algunos registros importados requieren confirmar las metas mensuales antes de confiar en sus porcentajes.</div>`:''}
+      ${readonly?'':`<p class="hint">Editar conserva el historial · Archivar retira al vendedor sin borrar sus ventas · Eliminar requiere confirmación.</p>`}
+    </section>
     <section class="panel"><h2>Miembros activos (${active().length})</h2>${active().map(sellerRowHTML).join('')||'<div class="empty">No hay vendedores activos.</div>'}</section>
     ${store.sellers.some(s=>!s.active)?`<section class="panel"><h2>Vendedores archivados</h2>${store.sellers.filter(s=>!s.active).map(sellerRowHTML).join('')}</section>`:''}
-    <section class="panel"><h2>Respaldo y transferencia</h2><p class="helptext">Los datos se guardan localmente. Si activas GitHub, también se sincronizan con el repositorio privado cuando hay internet. Conserva la opción de exportar un JSON independiente para emergencias.</p><div class="backupsetting"><label><input type="checkbox" id="autoBackup" ${store.autoBackupOnWeek!==false?'checked':''}/> Descargar un respaldo JSON automáticamente al completar cada semana</label><small>El archivo se nombra únicamente con la fecha del último registro (AAAA-MM-DD.json). Safari puede solicitar autorización; revisa Descargas.</small></div><div class="footeract"><button class="btn secondary" data-action="backup">↓ Exportar respaldo JSON</button><label for="restoreFile" class="btn ghost" style="cursor:pointer">↑ Importar respaldo JSON</label><input id="restoreFile" class="fileinput" type="file" accept=".json,application/json"/></div></section>${store.demo?`<section class="panel"><h2>Comenzar con información real</h2><p class="helptext">Los vendedores y cifras actuales son ficticios. Borra la demostración antes de empezar a usar la aplicación en Nun’z.</p><button class="btn warn" data-action="clearDemo">Eliminar datos de prueba</button></section>`:''}`;
+    <details class="admin-details" id="advancedSettings" ${ui.adminExpanded?'open':''}>
+      <summary><span class="admin-gear" aria-hidden="true">⚙</span> Administración y respaldos <span class="admin-chevron" aria-hidden="true">⌄</span></summary>
+      <div class="admin-content">
+        ${cloud?cloud.panelHTML():''}
+        <section class="panel" id="localBackupPanel"><h2>Respaldo local</h2>
+          <p class="helptext">Normalmente los datos se sincronizan automáticamente. Este respaldo JSON es opcional y sirve para recuperación o traslado manual.</p>
+          ${readonly?'':`<div class="backupsetting"><label><input type="checkbox" id="autoBackup" ${store.autoBackupOnWeek!==false?'checked':''}/> Descargar JSON automáticamente si no está vinculada la nube</label><small>Si GitHub está conectado, no se generan descargas después de cada semana.</small></div>`}
+          <div class="footeract"><button class="btn secondary" data-action="backup">↓ Exportar respaldo JSON</button>
+          ${readonly?'':`<label for="restoreFile" class="btn ghost" style="cursor:pointer">↑ Importar respaldo JSON</label><input id="restoreFile" class="fileinput" type="file" accept=".json,application/json"/>`}</div>
+        </section>
+        ${store.demo&&!readonly?`<section class="panel"><h2>Información de ejemplo</h2><button class="btn warn" data-action="clearDemo">Eliminar datos de prueba</button></section>`:''}
+      </div>
+    </details>`;
 }
 function sellerDataCounts(id){
   const count=key=>Object.values(store[key]||{}).filter(obj=>obj && Object.prototype.hasOwnProperty.call(obj,id)).length;
   return {semanas:count('weeks'),mensuales:count('records'),metas:count('monthlyGoals'),borradores:count('weekDrafts')+count('drafts')};
 }
 function openDeleteSeller(id){
+  if(!requireEditor())return;
   const s=seller(id);if(!s)return;
   const d=$('#deleteSellerDialog');ui.deleteSellerId=id;
   const c=sellerDataCounts(id);
@@ -751,6 +797,7 @@ function removeSellerFromData(id){
   if(ui.editSellerId===id)ui.editSellerId=null;
 }
 function confirmDeleteSeller(){
+  if(!requireEditor())return;
   const id=ui.deleteSellerId,s=seller(id);if(!s){$('#deleteSellerDialog').close();return;}
   if($('#deleteSellerVerify').value.trim().toLocaleUpperCase('es')!=='ELIMINAR'){
     $('#deleteSellerFeedback').textContent='Escribe ELIMINAR exactamente para confirmar.';
@@ -765,7 +812,7 @@ function confirmDeleteSeller(){
 function entryKey(){return weekKey(ui.year,ui.month,ui.week);}
 function previousCumulative(id,y,m,w){return cumulativeThrough(id,y,m,w-1);}
 function nextReportedWeek(id,y,m,w){for(let i=w+1;i<=weekCount(y,m);i++)if(weekSales(id,y,m,i)!==null)return i;return null;}
-function startEntry(){ui.week=Math.min(ui.week,weekCount(ui.year,ui.month));ui.entryIds=active().map(s=>s.id);ui.entryIndex=0;entry();}
+function startEntry(){if(isReadOnly()){ui.page='ranking';render();showToast('Registro deshabilitado en modo consulta');return;}ui.week=Math.min(ui.week,weekCount(ui.year,ui.month));ui.entryIds=active().map(s=>s.id);ui.entryIndex=0;entry();}
 function entry(){
   title('Registrar ventas','Una meta por mes · ventas acumuladas por semana');
   if(!ui.entryIds.length)ui.entryIds=active().map(s=>s.id);
@@ -782,10 +829,12 @@ function entry(){
   enableSwipe();
 }
 function draftEntry(){
+  if(isReadOnly())return;
   const id=ui.entryIds[ui.entryIndex],a=$('#goal'),b=$('#sales');if(!id||!a||!b)return;
   (store.weekDrafts[entryKey()]??={})[id]={goal:a.value,sales:b.value};save(false);
 }
 function captureEntry(){
+  if(!requireEditor())return false;
   const a=$('#goal'),b=$('#sales');if(!a||!b)return false;
   const goal=Number(a.value),sales=Number(b.value),id=ui.entryIds[ui.entryIndex];
   if(a.value.trim()===''||b.value.trim()===''||!Number.isFinite(goal)||!Number.isFinite(sales)||goal<=0||sales<0){showToast('Completa meta mensual (> Q0) y ventas acumuladas (≥ Q0)');return false;}
@@ -800,7 +849,7 @@ function captureEntry(){
   store.monthlyGoalReview[ym(ui.year,ui.month)]= (store.monthlyGoalReview[ym(ui.year,ui.month)]||[]).filter(x=>x!==id);
   (store.weekDrafts[entryKey()]??={})[id]={goal,sales};save(false);return true;
 }
-function nextEntry(){if(!captureEntry())return;
+function nextEntry(){if(!requireEditor() || !captureEntry())return;
   if(ui.entryIndex<ui.entryIds.length-1){ui.entryIndex++;entry();return;}
   const k=entryKey(),completed=store.weekDrafts[k]||{};
   // Commit atómico del grupo: la entrada es acumulativa, el almacenamiento es INCREMENTAL.
@@ -909,13 +958,13 @@ async function restore(file){
 function render(){nav();({ranking,history,entry,team}[ui.page]||ranking)();}
 function rerender(){if(ui.page==='entry')startEntry();else render();}
 document.addEventListener('click',e=>{
-  const page=e.target.closest('[data-page]');if(page){ui.page=page.dataset.page;if(ui.page==='entry'){Object.assign(ui,currentPeriod());startEntry();}else render();cloud?.schedule(600);return;}
+  const page=e.target.closest('[data-page]');if(page){if(page.dataset.page==='entry'&&!requireEditor())return;ui.page=page.dataset.page;if(ui.page==='entry'){Object.assign(ui,currentPeriod());startEntry();}else render();cloud?.schedule(600);return;}
   const set=e.target.closest('[data-set]');if(set){ui[set.dataset.set]=set.dataset.value;render();return;}
-  const edit=e.target.closest('[data-edit-seller]');if(edit){ui.editSellerId=edit.dataset.editSeller;render();$('#editedSellerName')?.focus();$('#editedSellerName')?.select();return;}
+  const edit=e.target.closest('[data-edit-seller]');if(edit){if(!requireEditor())return;ui.editSellerId=edit.dataset.editSeller;render();$('#editedSellerName')?.focus();$('#editedSellerName')?.select();return;}
   if(e.target.closest('[data-cancel-edit]')){ui.editSellerId=null;render();return;}
   const del=e.target.closest('[data-delete-seller]');if(del){openDeleteSeller(del.dataset.deleteSeller);return;}
-  const arch=e.target.closest('[data-archive]');if(arch){const s=seller(arch.dataset.archive);if(s&&confirm(`¿Archivar a ${s.name}? Se conservará su historial.`)){s.active=false;save();render();}return;}
-  const re=e.target.closest('[data-restore]');if(re){let s=seller(re.dataset.restore);if(s){s.active=true;save();render();}return;}
+  const arch=e.target.closest('[data-archive]');if(arch){if(!requireEditor())return;const s=seller(arch.dataset.archive);if(s&&confirm(`¿Archivar a ${s.name}? Se conservará su historial.`)){s.active=false;save();render();}return;}
+  const re=e.target.closest('[data-restore]');if(re){if(!requireEditor())return;let s=seller(re.dataset.restore);if(s){s.active=true;save();render();}return;}
   const action=e.target.closest('[data-action]');if(!action)return;
   switch(action.dataset.action){
     case 'cancelDelete':$('#deleteSellerDialog').close();ui.deleteSellerId=null;break;
@@ -925,23 +974,23 @@ document.addEventListener('click',e=>{
       if(!v){showToast('Pega el token únicamente en tu propia aplicación');break;}
       cloud?.link(v,mode);break;
     }
-    case 'ghPull':cloud?.beginPull();break;
+    case 'ghPull':case 'ghRestoreCloud':cloud?.beginPull();break;
     case 'ghCreate':cloud?.beginCreate();break;
     case 'ghSync':cloud?.sync();break;
-    case 'ghDisconnect':if(confirm('Desvincular GitHub de este dispositivo sin borrar las ventas locales?'))cloud?.disconnect();break;
+    case 'ghDisconnect':if(prompt('Desvincular detendrá la sincronización en este dispositivo. Escribe DESVINCULAR para confirmar:')==='DESVINCULAR')cloud?.disconnect();break;
     case 'nextEntry':nextEntry();break;
     case 'prevEntry':prevEntry();break;
     case 'exportRank':case 'shareRank':if(rangeRows(ui.year,ui.month).length)renderPNG(rankPoster(),`Nunz_Ranking_${ui.rankPeriod==='annual'?ui.year:ui.rankPeriod==='month'?ym(ui.year,ui.month):entryKey()}_${ui.rankPeriod}_${ui.mode}`,action.dataset.action==='shareRank');else showToast('No hay resultados para exportar');break;
     case 'exportChart':case 'shareChart':renderPNG(chartPoster(),`Nunz_Progreso_${ui.chartPeriod}_${ui.year}_${ui.mode}`,action.dataset.action==='shareChart');break;
     case 'backup':backup();break;
     case 'goToday':Object.assign(ui,currentPeriod());startEntry();showToast('Se seleccionó el período actual');break;
-    case 'clearDemo':if(confirm('¿Eliminar todos los datos y vendedores de demostración? Se perderán si no guardas un respaldo.')){store=migrateStore({sellers:[],records:{},weeks:{},monthlyGoals:{},weekDrafts:{},drafts:{},demo:false,weeklySchema:'weekly-delta-four-v3',autoBackupOnWeek:true});save();ui.page='team';render();showToast('Datos ficticios eliminados.');}break;
+    case 'clearDemo':if(!requireEditor())break;if(confirm('¿Eliminar todos los datos y vendedores de demostración? Se perderán si no guardas un respaldo.')){store=migrateStore({sellers:[],records:{},weeks:{},monthlyGoals:{},weekDrafts:{},drafts:{},demo:false,weeklySchema:'weekly-delta-four-v3',autoBackupOnWeek:true});save();ui.page='team';render();showToast('Datos ficticios eliminados.');}break;
   }
 });
 document.addEventListener('change',e=>{
   const id=e.target.id,v=e.target.value;
-  if(id==='restoreFile'){let f=e.target.files?.[0];if(f)restore(f);return;}
-  if(id==='autoBackup'){store.autoBackupOnWeek=e.target.checked;save();return;}
+  if(id==='restoreFile'){if(!requireEditor())return;let f=e.target.files?.[0];if(f)restore(f);return;}
+  if(id==='autoBackup'){if(!requireEditor())return;store.autoBackupOnWeek=e.target.checked;save();return;}
   if(id==='rankPeriod'){ui.rankPeriod=v;render();return;}
   if(id==='year'){ui.year=Number(v);ui.week=Math.min(ui.week,weekCount(ui.year,ui.month));rerender();return;}
   if(id==='month'){ui.month=Number(v);ui.week=Math.min(ui.week,weekCount(ui.year,ui.month));rerender();return;}
@@ -949,11 +998,12 @@ document.addEventListener('change',e=>{
   if(id==='historyMonth'){ui.historyMonth=v;render();return;}
   if(id==='sellerFilter'){ui.filter=v;render();return;}
 });
+document.addEventListener('toggle',e=>{if(e.target.id==='advancedSettings')ui.adminExpanded=e.target.open;},true);
 document.addEventListener('input',e=>{if(e.target.matches('#goal,#sales'))draftEntry();});
 document.addEventListener('submit',e=>{
  if(e.target.id==='deleteSellerForm'){e.preventDefault();confirmDeleteSeller();return;}
  if(e.target.id==='editSellerForm'){
-   e.preventDefault();
+   e.preventDefault();if(!requireEditor())return;
    const id=e.target.dataset.sellerId,s=seller(id),name=$('#editedSellerName')?.value.trim();
    if(!s)return;
    if(!name){showToast('El nombre no puede estar vacío');return;}
@@ -961,7 +1011,7 @@ document.addEventListener('submit',e=>{
    if(s.name!==name){const before=s.name;s.name=name;if(!save()){s.name=before;return;}}
    ui.editSellerId=null;render();showToast('Nombre actualizado sin modificar el historial');return;
  }
- if(e.target.id!=='addSeller')return;e.preventDefault();let name=$('#sellerName').value.trim();
+ if(e.target.id!=='addSeller')return;e.preventDefault();if(!requireEditor())return;let name=$('#sellerName').value.trim();
  if(!name){showToast('Escribe un nombre');return;}
  if(store.sellers.some(s=>s.name.toLocaleLowerCase('es')===name.toLocaleLowerCase('es'))){showToast('El vendedor ya existe. Puedes reactivarlo.');return;}
  store.sellers.push({id:'v'+Date.now().toString(36)+Math.floor(Math.random()*10000).toString(36),name,active:true});save();render();showToast('Vendedor agregado');
@@ -972,7 +1022,7 @@ cloud=new NunzGitHubSync({
   getState:()=>store,
   replaceState:resetStateFromCloud,
   notify:showToast,
-  onRefresh:()=>{if(ui.page==='team' && !document.activeElement?.matches('input,textarea,select')) render();},
+  onRefresh:()=>{if(isReadOnly() && ui.page==='entry'){ui.page='ranking';render();}else if(ui.page==='team' && !document.activeElement?.matches('input,textarea,select')) render();},
   shouldPausePull:()=>ui.page==='entry' 
 });
 cloud.init().catch(e=>showToast('No se pudo iniciar la sincronización de GitHub: '+e.message));

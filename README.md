@@ -1,3 +1,30 @@
+# Nun’z v12 — Sincronización discreta y modo consulta seguro
+
+Actualización sobre v11. Conserva los mismos identificadores de almacenamiento local (`nunz-sales-v2` y `nunz-gh-sync-config-v1`) y el archivo privado `datos/estado.json`. No se incluyen credenciales ni registros reales.
+
+## Novedades
+
+- El encabezado deja de mostrar GitHub. Un indicador discreto aparece al final de la página.
+- `Equipo de ventas` ahora prioriza vendedores. Las opciones de sincronización, exportación e importación JSON quedan dentro de **Administración y respaldos** (menú cerrado inicialmente).
+- En **Ranking**, ya no aparece el botón Respaldo JSON.
+- El modo **Solo consultar** impide añadir, editar, archivar, eliminar, registrar ventas e importar respaldos. Se siguen permitiendo consultas y exportar JSON local.
+- Desde **Administración y respaldos → Recuperar datos desde GitHub** se sustituye la copia local por la remota. Si hay cambios pendientes/conflicto, el usuario debe escribir `RESTAURAR` (se borrarán los cambios locales no publicados). Exporta un JSON antes si es necesario.
+- Desvincular exige escribir `DESVINCULAR`, y está detrás de un submenú adicional.
+
+## Despliegue
+
+Copia todos los archivos de este paquete a `jmsett/nunz-app` y publica con GitHub Pages desde `main`. No subas tokens ni archivos `estado.json` de ventas al repositorio público.
+
+## Importante
+
+Un desplegable es una barrera visual, **no un control de acceso**. El modo consulta protege la interfaz de escrituras, pero no sustituye un token GitHub de permisos limitados. Si quieres recuperar cambios de prueba realizados antes en un dispositivo de solo consulta, exporta respaldo desde ese dispositivo y después utiliza **Recuperar datos desde GitHub**. Esta operación descarta esas modificaciones locales y restablece la sincronización de lectura.
+
+No se fusionan automáticamente dos copias divergentes. La protección SHA evita sobrescrituras silenciosas; para un conflicto real de dos escritores, conservar ambos respaldos y resolver manualmente.
+
+## Recomendación para el iPhone
+
+Vincula el iPhone del usuario principal en modo **Registrar y sincronizar**, y utiliza **Solo consultar** en dispositivos que solo deban visualizar. Las actualizaciones automáticas de un service worker pueden requerir cerrar y volver a abrir la PWA.
+
 ## Novedades v11: gestión de vendedores
 
 - **Editar:** cambia el nombre de un vendedor sin alterar su identificador ni el historial vinculado. Impide duplicados.

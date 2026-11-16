@@ -82,9 +82,20 @@
     persist() { localStorage.setItem(CFG_KEY, JSON.stringify(this.cfg)); this.refresh(); }
     refresh() {
       const badge = document.getElementById('ghBadge');
-      if (badge) badge.textContent = this.label();
+      if (badge) {badge.textContent = this.compactLabel();badge.dataset.state=(this.cfg.conflict || (this.cfg.mode==='read'&&this.cfg.dirty) || this.lastError || (this.cfg.dirty&&navigator.onLine))?'attention':'ok';}
       const status = document.getElementById('ghStatusText');
       if (status) status.textContent = this.label() + (this.cfg.lastSynced ? ` · Última sincronización: ${new Date(this.cfg.lastSynced).toLocaleString('es-GT')}` : '');
+    }
+    compactLabel(){
+      if (!this.cfg.linked) return '● Guardado en este dispositivo';
+      if (!this.token) return '● Configuración pendiente';
+      if (this.cfg.conflict) return '● Revisar cambios';
+      if (this.cfg.mode==='read' && this.cfg.dirty) return '● Cambios locales sin publicar';
+      if (!navigator.onLine) return this.cfg.dirty ? '● Guardado localmente · sin internet' : '● Disponible sin conexión';
+      if (this.lastError) return '● Revisar conexión';
+      if (!this.cfg.initialized) return '● Configuración pendiente';
+      if (this.busy || this.cfg.dirty) return '● Guardado · envío pendiente';
+      return '✓ Datos actualizados';
     }
     label() {
       if (!this.cfg.linked) return 'Solo en este dispositivo';
@@ -178,7 +189,9 @@
     async beginPull() {
       if (this.busy) return;
       const hasLocal = this.getState().sellers.length || Object.keys(this.getState().weeks || {}).length;
-      if (hasLocal && !confirm('Los datos actuales de este dispositivo se reemplazarán por los de GitHub. Exporta primero tu JSON local si deseas conservarlo. ¿Continuar?')) return;
+      if (this.cfg.dirty || this.cfg.conflict) {
+        if (prompt('ATENCIÓN: los cambios locales no publicados desaparecerán. Si necesitas conservarlos, cancela y exporta primero un respaldo JSON. Para recuperar los datos de GitHub escribe RESTAURAR:') !== 'RESTAURAR') return;
+      } else if (hasLocal && !confirm('Esta acción sustituirá los datos de este dispositivo por la última copia de GitHub. ¿Continuar?')) return;
       this.busy = true; this.refresh();
       try {
         const remote = await this.readFile();
@@ -280,9 +293,15 @@
     }
     panelHTML() {
       const status = escapeHtml(this.label());
-      if (!this.cfg.linked || !this.token) return `<section class="panel" id="ghSyncPanel"><h2>Sincronización privada · GitHub</h2><p class="helptext">Los datos permanecen en este dispositivo hasta vincularlo. El token se guarda únicamente en este navegador (IndexedDB), nunca en GitHub Pages ni en los respaldos JSON. No está cifrado frente a código malicioso que se ejecute en la misma página.</p><div class="controlrow"><div class="field grow"><label for="ghToken">Token de acceso (solo repositorio nunz-datos)</label><input id="ghToken" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…"/></div><div class="field"><label for="ghMode">Permisos en este teléfono</label><select id="ghMode"><option value="write">Registrar y sincronizar</option><option value="read">Solo consultar</option></select></div><button type="button" class="btn" data-action="ghLink">Vincular GitHub</button></div><p class="hint">Nunca pegues el token en ChatGPT ni lo subas a nunz-app. Debe estar restringido únicamente al repositorio privado nunz-datos.</p></section>`;
-      if (!this.cfg.initialized) return `<section class="panel" id="ghSyncPanel"><h2>Sincronización privada · GitHub</h2><p id="ghStatusText" class="note">${status}</p><p class="helptext">Repositorio: <strong>jmsett/nunz-datos</strong>. Elige cómo comenzar sin mezclar datos entre dispositivos.</p><div class="footeract">${this.cfg.remoteExists ? `<button class="btn" data-action="ghPull">Usar datos de GitHub</button>` : (this.cfg.mode==='write' ? `<button class="btn" data-action="ghCreate">Crear primera copia en GitHub</button>` : '<span class="note">Pide al administrador que cree la primera copia desde un dispositivo de registro.</span>')}<button class="btn ghost" data-action="ghDisconnect">Desvincular</button></div></section>`;
-      return `<section class="panel" id="ghSyncPanel"><h2>Sincronización privada · GitHub</h2><p class="note" id="ghStatusText">${status}</p><p class="helptext">Repositorio privado: <strong>jmsett/nunz-datos</strong> · ${this.cfg.mode==='write'?'Registro y sincronización':'Solo consulta'}. Los cambios se sincronizan cuando la aplicación esté abierta y con conexión.</p>${this.cfg.conflict?'<p class="note warning">Conflicto detectado. Exporta un JSON de este dispositivo y consulta el historial de GitHub antes de desvincular o recuperar la nube. No se sobrescribirán cambios automáticamente.</p>':''}<div class="footeract"><button class="btn secondary" data-action="ghSync">↻ Sincronizar ahora</button><button class="btn ghost" data-action="ghDisconnect">Desvincular</button></div></section>`;
+      if (!this.cfg.linked || !this.token) return `<section class="panel" id="ghSyncPanel"><h2>Conexión privada</h2><p class="helptext">Configuración de administrador. La aplicación guarda primero los datos localmente y, una vez vinculada, los sincroniza al conectarse.</p><div class="controlrow"><div class="field grow"><label for="ghToken">Token de GitHub</label><input id="ghToken" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…"/></div><div class="field"><label for="ghMode">Permisos del dispositivo</label><select id="ghMode"><option value="write">Registrar y sincronizar</option><option value="read">Solo consultar</option></select></div><button type="button" class="btn" data-action="ghLink">Vincular</button></div><p class="hint">El token se guarda solo en el dispositivo, no en el código publicado ni en los respaldos JSON.</p></section>`;
+      if (!this.cfg.initialized) return `<section class="panel" id="ghSyncPanel"><h2>Conexión privada</h2><p id="ghStatusText" class="note">${status}</p><div class="footeract">${this.cfg.remoteExists ? `<button class="btn" data-action="ghPull">Usar datos de GitHub</button>` : (this.cfg.mode==='write' ? `<button class="btn" data-action="ghCreate">Crear primera copia</button>` : '<span class="note">La primera copia debe crearla un dispositivo con permisos de registro.</span>')}</div><details class="admin-danger"><summary>Opciones de conexión</summary><button class="btn ghost" data-action="ghDisconnect">Desvincular este dispositivo</button></details></section>`;
+      return `<section class="panel" id="ghSyncPanel"><h2>Conexión privada</h2><p class="note" id="ghStatusText">${status}</p>
+        ${this.cfg.mode==='read' && this.cfg.dirty?'<p class="note warning">Este dispositivo es de solo consulta, pero contiene cambios locales realizados anteriormente. No se enviarán a GitHub. Si son pruebas, expórtalos si los necesitas y selecciona «Recuperar datos desde GitHub» para descartarlos.</p>':''}
+        ${this.cfg.conflict?'<p class="note warning">La copia local y la de GitHub cambiaron. No se han sobrescrito. Guarda una copia JSON local y revisa qué cambios quieres conservar antes de restaurar los datos de GitHub.</p>':''}
+        <div class="footeract"><button class="btn secondary" data-action="ghSync">↻ Sincronizar ahora</button><button class="btn ghost" data-action="ghRestoreCloud">Recuperar datos desde GitHub</button></div>
+        <p class="hint">«Recuperar» sustituye los datos de este dispositivo por la última versión en GitHub. Si hay cambios pendientes pedirá una confirmación especial.</p>
+        <details class="admin-danger"><summary>Opciones de conexión</summary><button class="btn warn" data-action="ghDisconnect">Desvincular este dispositivo</button></details>
+      </section>`;
     }
   }
   window.NunzGitHubSync = NunzGitHubSync;
