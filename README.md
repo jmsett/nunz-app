@@ -1,3 +1,13 @@
+# Nun’z v13 — Laureles más bajos (≈60°)
+
+Actualización visual puntual sobre v12. Los laureles del Top 3 comienzan en la misma base, pero terminan cerca de 60° desde la horizontal. Las hojas conservan sus proporciones porque se rota y escala la rama uniformemente; la segunda rama se refleja simétricamente. La corona del primer lugar conserva su posición.
+
+El cambio afecta tanto al ranking en pantalla como al ranking PNG exportado; el almacenamiento, los permisos de GitHub, la sincronización y los datos existentes no se modifican.
+
+## Publicación
+
+Sustituye los archivos en `jmsett/nunz-app` con los de este ZIP y publica a `main`. `sw.js` incorpora una versión de caché nueva para que la PWA reciba la actualización cuando vuelva a abrirse con internet.
+
 # Nun’z v12 — Sincronización discreta y modo consulta seguro
 
 Actualización sobre v11. Conserva los mismos identificadores de almacenamiento local (`nunz-sales-v2` y `nunz-gh-sync-config-v1`) y el archivo privado `datos/estado.json`. No se incluyen credenciales ni registros reales.
