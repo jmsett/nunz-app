@@ -128,7 +128,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 }
 @media(max-width:380px){.rankitem.top{grid-template-columns:41px minmax(0,1fr) auto;gap:6px}.rankitem.top .medal{width:39px;height:39px;font-size:20px}.rankitem.top .rankmetric{font-size:18px}.rankitem.other .rankname{font-size:11px}.rankitem.other .rankmetric{font-size:12px}.workspace{padding-left:9px;padding-right:9px}}
 
-/* v4: Laureles y corona fieles a la identidad elegida */
+/* v14: laureles calcados del concepto aprobado mediante SVG vectorial */
 .rankitem.top .award{width:86px;height:98px;display:block;overflow:visible;justify-self:center;filter:drop-shadow(0 2px 3px rgba(144,163,0,.10))}
 .rankitem.top{grid-template-columns:88px minmax(0,1fr) auto}
 .ranknum{display:flex;align-items:center;justify-content:center;line-height:1;padding:0;margin:0;width:39px;height:39px;flex-shrink:0}
@@ -594,22 +594,16 @@ function progress(percent){
   return `<div class="bar" role="img" aria-label="${pct(percent)} del objetivo"><div class="barfill" style="width:${base}%"></div>${extra>0?`<span class="bonus" style="width:${extra}%" title="Excedente: +${Math.round(percent-100)} puntos porcentuales"></span>`:''}</div>`;
 }
 function laurels(rank){
-  // Láminas de laurel dibujadas con Bézier: simetría perfecta, hojas puntiagudas, sin elipses deformadas.
-  const twig='<path d="M43 94 C25 91 16 78 17 62 C18 48 26 34 37 28" fill="none" stroke="#c3d200" stroke-width="2.25" stroke-linecap="round"/>';
-  const leaves=[
-    'M36 30 C28 25 27 17 33 12 C40 15 41 23 36 30Z',
-    'M28 40 C18 38 14 30 17 24 C27 24 31 32 28 40Z',
-    'M22 51 C13 52 8 46 8 38 C18 37 24 44 22 51Z',
-    'M19 64 C10 66 5 62 4 53 C13 52 20 57 19 64Z',
-    'M21 76 C13 80 7 77 4 69 C12 65 20 69 21 76Z',
-    'M29 86 C22 92 14 91 10 84 C18 78 26 79 29 86Z',
-    'M40 91 C34 98 25 100 19 95 C25 87 34 86 40 91Z'
-  ].map(d=>`<path d="${d}" fill="#d3df00"/>`).join('');
-  // La rama nace en la misma base y termina a ~60° respecto a la horizontal.
-  // Rotación y escala uniformes: hojas intactas y simetría exacta al reflejar la rama.
-  const branch=`<g transform="translate(45 96) rotate(-18) scale(.86) translate(-43 -96)">${twig}${leaves}</g>`;
-  const crown=rank===1?'<g transform="translate(0 -15)"><path d="M33 25 L29 9 L40 17 L50 4 L60 17 L71 9 L67 25 Z" fill="#ebdf00" stroke="#d8cf00" stroke-width="1.3"/><circle cx="50" cy="13" r="2.6" fill="white"/></g>':'';
-  return `${branch}<g transform="translate(100 0) scale(-1 1)">${branch}</g>${crown}<text x="50" y="${rank===1?76:72}" text-anchor="middle" font-family="Arial,sans-serif" font-size="${rank===1?39:43}" font-weight="800" fill="#06457d">${rank}</text>`;
+  // v14: siluetas SVG aprobadas a partir del concepto 1000106242.jpg.
+  // La escala es UNIFORME y el mismo vector se utiliza en la pantalla y en la exportación PNG.
+  const foliage=`<path d="M194,363 L187,367 L181,374 L177,382 L176,393 L173,399 L169,399 L161,389 L156,392 L157,406 L160,414 L166,423 L167,428 L164,429 L152,416 L146,416 L144,418 L144,430 L149,439 L165,453 L167,456 L167,464 L164,465 L156,459 L144,456 L144,467 L150,478 L155,483 L165,489 L179,493 L184,499 L183,503 L164,501 L161,504 L163,509 L173,519 L191,526 L211,525 L215,528 L214,532 L206,533 L200,536 L198,539 L199,541 L208,546 L216,548 L234,547 L241,544 L249,546 L258,546 L258,541 L253,540 L244,534 L239,521 L228,507 L225,507 L222,510 L224,525 L222,527 L219,527 L212,521 L212,498 L204,481 L201,480 L197,484 L196,500 L194,502 L192,502 L187,496 L185,486 L190,479 L192,471 L191,453 L189,451 L182,455 L176,465 L173,464 L172,452 L186,437 L188,427 L186,424 L183,424 L174,431 L170,431 L169,428 L175,420 L184,417 L191,411 L191,403 L178,404 L177,400 L185,393 L191,390 L199,380 L203,366 L198,362Z"/> <path d="M381,364 L374,362 L370,363 L369,373 L374,384 L385,393 L390,394 L393,397 L394,404 L392,406 L382,403 L380,404 L380,409 L385,415 L395,421 L401,427 L400,431 L386,424 L383,427 L384,435 L398,452 L398,463 L394,464 L386,453 L382,453 L379,458 L379,474 L382,484 L385,488 L385,494 L380,500 L377,500 L373,483 L371,481 L368,482 L364,486 L359,498 L359,522 L355,526 L349,527 L348,522 L350,517 L350,510 L348,506 L341,508 L331,524 L329,533 L326,536 L315,541 L313,543 L313,545 L315,546 L330,545 L343,548 L352,548 L366,545 L372,540 L372,537 L359,533 L358,528 L364,525 L385,525 L393,522 L402,515 L408,508 L409,503 L406,501 L397,501 L389,503 L387,501 L387,498 L392,493 L407,488 L419,479 L426,466 L427,460 L424,456 L413,460 L406,465 L403,464 L405,454 L420,441 L425,431 L425,419 L423,416 L417,417 L407,429 L403,428 L403,424 L412,410 L415,401 L415,394 L414,392 L410,391 L404,396 L401,401 L398,401 L392,378 L387,369Z"/>`;
+  const crown=rank===1?`<path d="M218,277 L217,284 L226,294 L230,307 L231,316 L234,322 L237,337 L239,341 L239,347 L244,350 L266,345 L309,345 L326,349 L336,349 L339,345 L339,337 L345,320 L345,315 L349,305 L350,296 L352,292 L359,287 L361,284 L359,278 L356,275 L352,275 L347,279 L347,282 L342,287 L322,296 L318,296 L312,290 L302,276 L296,265 L296,256 L295,254 L291,252 L285,253 L282,256 L282,264 L278,270 L277,274 L268,285 L265,291 L260,296 L256,296 L254,294 L246,292 L242,289 L236,287 L232,283 L230,277 L227,275 L221,275Z M287,297 L291,297 L298,306 L298,312 L292,320 L287,320 L284,318 L279,310 L280,304Z" fill="#ffe500" fill-rule="evenodd"/>`:'';
+  return `<g transform="scale(0.309597523) translate(-128 -242)">
+    <defs><linearGradient id="nunz-approved-leaves-${rank}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ced300"/><stop offset=".65" stop-color="#d4d600"/><stop offset="1" stop-color="#c6d100"/></linearGradient></defs>
+    <g fill="url(#nunz-approved-leaves-${rank})">${foliage}</g>
+    ${crown}
+    <text x="286" y="495" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="137" font-weight="800" fill="#0b467e">${rank}</text>
+  </g>`;
 }
 function award(rank){return `<svg class="award" viewBox="0 -16 100 121" aria-label="Puesto ${rank}">${laurels(rank)}</svg>`;}
 function ranking(){

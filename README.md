@@ -1,3 +1,9 @@
+## v14 — Laureles aprobados
+
+Actualización visual exclusivamente: los laureles de los primeros tres puestos y la corona del primero se reproducen con los mismos vectores aprobados en `nunz_laureles_estudio.html`, extraídos del concepto `1000106242.jpg`. Se dibujan con la misma función en pantalla y exportación PNG.
+
+No modifica la lógica de ventas, los JSON, la autenticación ni la sincronización de GitHub. El `sw.js` cambia la clave del caché para renovar la PWA instalada.
+
 # Nun’z v13 — Laureles más bajos (≈60°)
 
 Actualización visual puntual sobre v12. Los laureles del Top 3 comienzan en la misma base, pero terminan cerca de 60° desde la horizontal. Las hojas conservan sus proporciones porque se rota y escala la rama uniformemente; la segunda rama se refleja simétricamente. La corona del primer lugar conserva su posición.

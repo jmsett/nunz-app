@@ -1,5 +1,5 @@
 /* Nun’z PWA: caché de archivos de la aplicación, nunca datos del repositorio. */
-const CACHE_NAME = 'nunz-app-shell-v13-laureles-60grados-1';
+const CACHE_NAME = 'nunz-app-shell-v14-laureles-aprobados-1';
 const APP_SHELL = [
   './', './index.html', './github-sync.js', './manifest.webmanifest',
   './assets/nunz-logo.png',
