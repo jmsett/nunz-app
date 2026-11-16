@@ -1,0 +1,824 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#ffffff"/><meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Nun’z Ventas"/>
+<title>Nun’z Laboratorios · Desempeño Comercial</title><style>:root{
+  --blue:#0757a0; --blue2:#007fc8; --deep:#073f83; --ink:#153a6a;
+  --yellow:#deeb00; --yellow2:#e6f500; --pale:#f6faff;
+  --soft:#edf5fb; --line:#dce8f3; --muted:#71829c;
+  --shadow:0 10px 28px rgba(5,49,105,.075);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#f7faff;color:var(--ink);font:15px/1.47 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.42}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid rgba(12,136,222,.35);outline-offset:2px}
+.app{display:flex;min-height:100vh}
+.sidebar{width:248px;background:#fff;border-right:1px solid var(--line);position:sticky;top:0;height:100vh;padding:25px 16px 20px;display:flex;flex-direction:column;flex-shrink:0}
+.brand{padding:12px 8px 22px;text-align:center}
+.brand img{width:100%;max-width:197px;max-height:90px;object-fit:contain;display:block;margin:auto}
+.nav{display:grid;gap:8px;padding-top:20px;border-top:1px solid #eaf0f5}
+.navbtn{border:0;border-radius:14px;background:transparent;display:flex;align-items:center;gap:12px;text-align:left;font-weight:650;color:#627c99;padding:13px 14px;min-height:50px}
+.navbtn svg{width:21px;height:21px;flex-shrink:0}
+.navbtn:hover{background:#f0f7fd}.navbtn.active{background:#e6f4ff;color:var(--blue);font-weight:800}
+.sidebarfoot{margin-top:auto;padding:16px 10px 0;color:#93a1b2;font-size:12px;line-height:1.7}
+.workspace{width:calc(100% - 248px);max-width:1350px;padding:36px clamp(22px,4vw,64px) 75px;margin:0 auto}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:24px}
+.topbar h1{font-size:clamp(30px,3.6vw,43px);letter-spacing:-1.35px;line-height:1.12;color:var(--deep);margin:5px 0 8px;font-weight:820}
+.topbar p{margin:0;color:var(--muted);font-size:15px}
+.kicker{font-weight:820;color:#1087c6;font-size:11px;letter-spacing:2px;text-transform:uppercase}
+.demo{background:#fcfbdc;color:#6c7000;border:1px solid #edf29b;padding:7px 11px;border-radius:30px;font-size:11px;font-weight:760;white-space:nowrap}
+.panel{background:#fff;border:1px solid var(--line);border-radius:23px;padding:clamp(17px,2.8vw,30px);box-shadow:var(--shadow);margin-bottom:19px}
+.panel h2{font-size:20px;color:var(--deep);margin:0 0 12px;letter-spacing:-.35px}
+.controlrow{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:21px}
+.field{min-width:112px;display:flex;flex-direction:column;gap:6px}
+.field.grow{flex:1;min-width:180px}
+.field label{font-size:12px;font-weight:680;color:#667b99}
+.field select,.field input{border-radius:12px;border:1px solid #d5e1ee;padding:12px 13px;min-height:46px;background:#fff;color:#193966;max-width:100%}
+.field input:focus,.field select:focus{border-color:#1a92d2}
+.btn{border:0;border-radius:12px;background:var(--blue2);color:#fff;font-weight:780;padding:12px 17px;min-height:45px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none}
+.btn:hover{background:#036ba9}.btn.secondary{color:var(--blue);background:#e7f3fb}.btn.secondary:hover{background:#d9eefa}
+.btn.ghost{background:#fff;color:var(--deep);border:1px solid #d7e3ef}.btn.warn{background:#fff3f0;color:#ac5144}
+.btn.small{font-size:12px;padding:8px 12px;min-height:35px}.btn.full{width:100%}
+.seg{display:inline-flex;align-items:center;gap:3px;background:#f9fbfd;padding:4px;border:1px solid #d7e3ef;border-radius:15px;max-width:100%}
+.seg button{border:0;background:none;border-radius:11px;padding:10px 15px;font-weight:700;font-size:13px;color:#667d98;white-space:nowrap}
+.seg button.selected{color:white;background:linear-gradient(145deg,#087fc6,#075bad);box-shadow:0 3px 8px rgba(3,89,169,.17)}
+.controls{display:flex;gap:17px;flex-wrap:wrap;align-items:end;justify-content:space-between;margin:4px 0 18px}
+.switchgroup{display:flex;flex-direction:column;gap:6px}.switchgroup>span{font-size:12px;font-weight:690;color:#71819a}
+.sectionlead{text-align:center;margin:6px 0 23px}
+.sectionlead h2{font-size:clamp(31px,4vw,47px);font-weight:830;color:var(--deep);letter-spacing:-1.4px;margin:0 0 10px}
+.sectionlead p{font-size:17px;font-style:italic;color:#758198;margin:12px 0 0}
+.periodpill{display:inline-flex;align-items:center;justify-content:center;background:var(--yellow);border-radius:80px;padding:7px 28px;min-width:200px;font-size:16px;font-weight:810;color:#064a96}
+.sectionlead.compact h2{font-size:clamp(29px,3.2vw,40px)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 25px}
+.stat{background:white;border:1px solid var(--line);border-radius:18px;padding:15px 17px;min-width:0;display:flex;flex-direction:column;gap:5px}
+.stat .lab{color:#697b94;font-size:12px;font-weight:720}.stat .value{font-size:clamp(19px,2.6vw,29px);line-height:1.2;font-weight:840;letter-spacing:-.8px;color:var(--deep);overflow-wrap:anywhere}
+.stat .value.lit{align-self:flex-start;background:#e8f78e;padding:1px 9px;border-radius:9px}
+.ranklist{display:flex;flex-direction:column;gap:9px;margin-top:23px}
+.rankitem{display:grid;grid-template-columns:86px minmax(0,1fr) minmax(130px,auto);align-items:center;gap:15px;padding:21px 23px;background:white;border:1px solid #e2eaf1;border-radius:24px;box-shadow:0 7px 16px rgba(3,63,130,.09);min-width:0}
+.rankitem.top{min-height:145px}.rankitem.first{border:1.5px solid #d8e400;box-shadow:0 8px 20px rgba(189,198,0,.16)}
+.rankitem.other{padding:12px 16px;min-height:61px;border-radius:8px;border:0;border-bottom:1px solid #e2e9f1;box-shadow:none;grid-template-columns:44px max-content minmax(65px,1fr) auto;column-gap:18px}
+.medal{height:72px;width:72px;border-radius:50%;display:grid;place-items:center;position:relative;font-size:34px;font-weight:860;color:var(--deep)}
+.medal:before{content:'❮';position:absolute;left:-9px;top:13px;transform:rotate(-12deg);font-size:25px;color:#d5df00;opacity:.95}
+.medal:after{content:'❯';position:absolute;right:-9px;top:13px;transform:rotate(12deg);font-size:25px;color:#d5df00;opacity:.95}
+.rankitem.first .medal{background:#f3f9aa}.rankitem:not(.first) .medal{background:#f4f9ff}
+.rankname{font-size:clamp(17px,2.3vw,27px);font-weight:790;color:var(--deep);overflow-wrap:anywhere;line-height:1.2}
+.rankitem .rankmetric{font-weight:830;color:var(--deep);letter-spacing:-.6px;font-size:clamp(21px,2.8vw,36px);text-align:right;white-space:nowrap}
+.rankdetails{min-width:0}.rankitem.top .rankdetails{display:flex;flex-direction:column;gap:13px}
+.rankitem.other .rankname{font-size:14px;font-weight:660;color:#34455f}.rankitem.other .rankmetric{font-size:18px}
+.ranknum{border-radius:11px;background:#e8f1f8;padding:6px;display:grid;place-items:center;font-size:20px;font-weight:850;color:var(--deep);width:36px;height:36px}
+.rankitem .bar{height:11px;width:100%;background:#e0eaf2;position:relative;border-radius:90px;overflow:hidden}
+.rankitem.other .bar{height:10px}
+.barfill{height:100%;background:linear-gradient(90deg,#087dc4,#0773c4);border-radius:90px}
+.bonus{position:absolute;right:0;top:0;height:100%;background:linear-gradient(90deg,#e5f000,#e1ee00);border-radius:90px;box-shadow:0 0 12px rgba(218,235,0,.7)}
+.rankitem.top .bonus{filter:drop-shadow(0 0 4px rgba(211,232,0,.72))}
+.footerquote{text-align:center;color:var(--deep);font-size:clamp(22px,2.5vw,30px);font-weight:790;font-style:italic;margin:35px auto 7px}
+.footercurve{width:220px;height:13px;border-top:5px solid var(--yellow);border-radius:50%;margin:auto}
+.viewhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:13px}
+.viewhead h2{margin:0}.hint{color:#8594a8;font-size:12px;margin:14px 0 0;line-height:1.55}
+.empty{padding:38px 15px;border:1px dashed #cbdce9;border-radius:15px;text-align:center;color:#7486a0}
+.empty strong{display:block;font-size:17px;color:var(--deep);margin-bottom:9px}
+.chartbox{border:1px solid #e1e9f2;border-radius:22px;padding:16px 12px;background:white}
+.chartscroll{overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.chartscroll svg{display:block;height:auto;width:100%;max-width:none}.chartscroll.wide svg{width:2100px;max-width:none}
+.chartlegend{display:flex;gap:22px;justify-content:center;align-items:center;flex-wrap:wrap;color:#4f6380;font-size:12px;margin-top:10px}
+.legendline{height:3px;background:#0573c5;width:27px;display:inline-block;vertical-align:middle;margin-right:5px;border-radius:5px}.legendgoal{width:28px;border-top:2px dashed #8e9cac;display:inline-block;vertical-align:middle;margin-right:5px}
+.legendlime{height:10px;width:24px;border-radius:20px;background:var(--yellow);display:inline-block;vertical-align:middle;margin-right:5px}
+.sellerrow{display:flex;justify-content:space-between;align-items:center;gap:14px;border-top:1px solid #ebf0f5;padding:15px 0}
+.sellerrow:first-of-type{border:0}.sellername{font-weight:800}.tiny{font-size:12px;color:#8492a5}.archived{opacity:.72}
+.note{border-radius:12px;background:#f1f8fd;color:#657e9b;font-size:13px;line-height:1.55;padding:13px 15px}
+.warning{background:#fffbea;color:#746f23;border:1px solid #f4e9b1}
+.entrymeta{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#657b96;font-size:13px;margin:10px 0 12px}
+.steptrack{background:#e7eff5;height:8px;border-radius:99px;overflow:hidden}.steptrack span{height:100%;background:linear-gradient(90deg,#0781c2,#deea00);display:block;transition:width .25s}
+.entrycard{background:#fff;max-width:560px;margin:26px auto 17px;border:1px solid #d6e6f3;border-radius:27px;padding:35px;box-shadow:0 18px 38px rgba(4,64,127,.115);user-select:none;touch-action:pan-y;transition:transform .2s,opacity .2s}
+.avatar{background:#eaf6ff;border-radius:17px;display:grid;place-items:center;width:58px;height:58px;margin-bottom:17px;font-size:28px}
+.entrycard h2{font-size:clamp(27px,4vw,33px);margin:0 0 6px}.entrycard .subtitle{font-size:13px;color:#8594a7;margin-bottom:21px}
+.entrycard .field{margin-bottom:17px}.entrycard input{font-size:22px;font-weight:740;min-height:61px}
+.entryactions{display:flex;justify-content:space-between;gap:10px;max-width:560px;margin:auto}.swipehint{text-align:center;color:#8b9cb0;font-size:12px;margin:15px 0 3px}
+.footeract{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.fileinput{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.toast{position:fixed;z-index:99;right:25px;bottom:24px;border-radius:13px;background:#074b8f;color:#fff;padding:13px 17px;font-weight:720;font-size:13px;opacity:0;pointer-events:none;transform:translateY(10px);transition:.18s;box-shadow:0 10px 30px rgba(9,52,97,.22);max-width:calc(100% - 35px)}
+.toast.show{opacity:1;transform:translateY(0)}
+.datahint{font-size:12px;color:#7d8fa3;margin-top:8px}.helptext{font-size:14px;color:#6e8199}
+.reportintro{margin:0 0 24px;text-align:center}.reportintro h2{font-size:32px;color:var(--deep);margin:7px 0 4px;font-weight:820}
+.reportintro .sub{color:#8490a3;font-style:italic;font-size:16px}
+.chartcontrols{border:1px solid var(--line);border-radius:18px;padding:16px 16px 0;background:#fcfdff;margin-bottom:17px}
+@media(max-width:1000px){.workspace{padding:26px 22px 60px}.sidebar{width:218px}.workspace{width:calc(100% - 218px)}.rankitem.top{grid-template-columns:58px minmax(0,1fr) auto;gap:12px}.rankitem.top .medal{width:53px;height:53px;font-size:25px}.rankitem.top .medal:before,.rankitem.top .medal:after{font-size:19px}.rankitem.top{padding:16px}.rankitem.other{grid-template-columns:32px minmax(85px,1fr) minmax(75px,1fr) auto}}
+@media(max-width:760px){
+ .app{display:block}.sidebar{width:100%;height:auto;position:static;padding:6px 10px 0;border:0;border-bottom:1px solid var(--line)}
+ .brand{padding:5px 0 4px}.brand img{max-width:180px;max-height:70px}
+ .nav{padding:7px 0 8px;border:0;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}
+ .navbtn{display:flex;flex-direction:column;justify-content:center;gap:3px;text-align:center;font-size:10px;line-height:1.2;padding:8px 4px;min-height:58px;border-radius:10px}
+ .navbtn svg{width:19px;height:19px}.sidebarfoot{display:none}
+ .workspace{width:100%;max-width:none;padding:19px 12px 50px}
+ .topbar{margin-bottom:16px;gap:7px}.topbar h1{font-size:27px}.topbar p{font-size:12px}.topbar .demo{font-size:9px;padding:5px 6px;white-space:normal;max-width:92px;text-align:center}
+ .panel{padding:15px 13px;border-radius:17px;margin-bottom:13px}
+ .stats{gap:6px;margin:15px 0 20px}.stat{padding:10px 8px;border-radius:12px}.stat .lab{font-size:10px}.stat .value{font-size:clamp(15px,4.1vw,21px);letter-spacing:-.4px}
+ .controlrow{gap:8px}.field{min-width:98px}.field select,.field input{padding:10px;min-height:43px}
+ .seg{max-width:100%;overflow-x:auto}.seg button{padding:9px 11px;font-size:12px}
+ .switchgroup{max-width:100%}.controls{gap:10px;justify-content:flex-start}
+ .sectionlead{margin-top:10px}.sectionlead h2{font-size:31px}.sectionlead p{font-size:14px}.periodpill{font-size:14px;padding:7px 15px}
+ .rankitem.top{grid-template-columns:54px minmax(0,1fr) auto;gap:10px;min-height:108px;padding:13px 9px;border-radius:18px}
+ .rankitem.top .medal{width:46px;height:46px;font-size:25px}.rankitem.top .medal:before,.rankitem.top .medal:after{font-size:15px;top:15px;left:-2px}.rankitem.top .medal:after{left:auto;right:-2px}
+ .rankitem.top .rankname{font-size:clamp(16px,4.4vw,23px)}.rankitem.top .rankmetric{font-size:clamp(19px,5.6vw,28px)}
+ .rankitem.other{grid-template-columns:30px minmax(70px,1fr) minmax(55px,1fr) auto;gap:7px;padding:9px 3px}.rankitem.other .rankname{font-size:12px}.rankitem.other .rankmetric{font-size:14px}.rankitem .bar{height:9px}
+ .footerquote{font-size:22px}.btn{padding:11px 12px;font-size:12px}.viewhead h2,.panel h2{font-size:18px}
+ .entrycard{padding:24px 20px;margin:18px auto}.entrycard h2{font-size:26px}.entryactions .btn{font-size:12px}
+ .chartbox{padding:10px 2px}.chartlegend{font-size:10px;gap:10px}
+}
+@media(max-width:380px){.rankitem.top{grid-template-columns:41px minmax(0,1fr) auto;gap:6px}.rankitem.top .medal{width:39px;height:39px;font-size:20px}.rankitem.top .rankmetric{font-size:18px}.rankitem.other .rankname{font-size:11px}.rankitem.other .rankmetric{font-size:12px}.workspace{padding-left:9px;padding-right:9px}}
+
+/* v4: Laureles y corona fieles a la identidad elegida */
+.rankitem.top .award{width:86px;height:98px;display:block;overflow:visible;justify-self:center;filter:drop-shadow(0 2px 3px rgba(144,163,0,.10))}
+.rankitem.top{grid-template-columns:88px minmax(0,1fr) auto}
+.ranknum{display:flex;align-items:center;justify-content:center;line-height:1;padding:0;margin:0;width:39px;height:39px;flex-shrink:0}
+.rankitem.other{column-gap:18px}
+.rankitem.other .rankname{width:max-content;max-width:100%}
+.rankitem.other .bar{min-width:24px}
+@media(max-width:1000px){.rankitem.top{grid-template-columns:64px minmax(0,1fr) auto}.rankitem.top .award{width:63px;height:77px}.rankitem.other{grid-template-columns:37px max-content minmax(38px,1fr) auto;column-gap:11px}}
+@media(max-width:760px){.rankitem.top{grid-template-columns:56px minmax(0,1fr) auto;gap:9px;min-height:118px}.rankitem.top .award{width:56px;height:71px}.rankitem.other{grid-template-columns:32px max-content minmax(28px,1fr) auto;column-gap:8px}.rankitem.other .rankname{font-size:11px}.rankitem.other .rankmetric{font-size:13px}.ranknum{width:31px;height:31px;font-size:17px}}
+@media(max-width:380px){.rankitem.top{grid-template-columns:45px minmax(0,1fr) auto}.rankitem.top .award{width:46px;height:63px}.rankitem.other{column-gap:6px}.rankitem.other .rankname{font-size:10px}.rankitem.other .rankmetric{font-size:12px}}
+
+/* v5 – cuadrícula fija: todas las barras de los puestos 4+ arrancan exactamente en el mismo lugar */
+.rankitem.other{grid-template-columns:40px 242px minmax(54px,1fr) minmax(76px,auto);column-gap:17px;align-items:center}
+.rankitem.other .rankname{min-width:0;width:auto;max-width:none;overflow-wrap:anywhere;line-height:1.22}
+.rankitem.other .bar{min-width:0}
+.ranknum{display:grid;place-items:center;line-height:1;vertical-align:middle;padding:0;width:39px;height:39px;font-variant-numeric:tabular-nums}
+.tablewrap{overflow:auto;-webkit-overflow-scrolling:touch;max-height:620px;border:1px solid var(--line);border-radius:14px}
+.historytable{width:100%;min-width:540px;border-collapse:separate;border-spacing:0;white-space:nowrap;font-size:14px}
+.historytable thead{position:sticky;top:0;z-index:1}
+.historytable th,.historytable td{padding:12px 15px;border-bottom:1px solid #e6eef5;text-align:right}
+.historytable tr> :first-child{text-align:left}
+.historytable thead th{background:#eaf3fc;color:#073f83;font-weight:750}
+.historytable tbody tr:nth-child(even){background:#f7fbff}
+.historytable tbody th{font-weight:650;color:#134a80}
+.historytable td.overgoal{color:#799200;font-weight:800}
+.backupsetting{border:1px solid var(--line);padding:12px;border-radius:12px;margin:14px 0 15px;background:#f5faff}
+.backupsetting label{display:flex;align-items:center;gap:10px;font-weight:650}
+.backupsetting input{width:20px;height:20px;accent-color:var(--blue);flex-shrink:0}
+.backupsetting small{display:block;margin:5px 0 0 30px;color:var(--muted)}
+@media(max-width:1000px){.rankitem.other{grid-template-columns:36px 180px minmax(40px,1fr) minmax(66px,auto);column-gap:11px}}
+@media(max-width:760px){.rankitem.other{grid-template-columns:32px clamp(92px,27vw,135px) minmax(24px,1fr) minmax(43px,auto);column-gap:9px}.rankitem.other .rankname{font-size:11px}.ranknum{width:31px;height:31px;line-height:1}.rankitem.other .rankmetric{font-size:13px}}
+@media(max-width:380px){.rankitem.other{grid-template-columns:30px 85px minmax(20px,1fr) minmax(42px,auto);column-gap:6px}.rankitem.other .rankmetric{font-size:12px}.rankitem.other .rankname{font-size:10px}}
+
+.legendbar{display:inline-block;width:15px;height:11px;border-radius:3px;background:#0875c5;vertical-align:middle;margin-right:9px}
+
+/* v6: controles intencionalmente compactos y alineados */
+.workspace{padding-top:25px}
+.topbar{margin-bottom:16px}
+.panel{padding:clamp(15px,2vw,24px)}
+.controlrow{margin-bottom:13px;gap:10px}
+.rank-filters{display:grid;grid-template-columns:110px minmax(140px,1fr) minmax(125px,160px) minmax(146px,178px);align-items:end;gap:10px}
+.rank-filters:has(> :nth-child(3):last-child){grid-template-columns:110px minmax(140px,1fr) minmax(130px,160px)}
+.rank-filters:has(> :nth-child(2):last-child){grid-template-columns:110px minmax(120px,165px)}
+.rank-filters .field{min-width:0;width:100%}
+.rank-filters select{width:100%}
+.report-field select{color:var(--deep);font-weight:700}
+.sectionlead{margin:0 0 13px}
+.sectionlead h2{margin:0 0 3px;font-size:clamp(27px,3.4vw,41px)}
+.sectionlead p{font-size:14px;margin:6px 0 0}
+.periodpill{padding:5px 18px;min-width:0;font-size:14px}
+.stats{margin:12px 0 13px;gap:8px}
+.stat{padding:10px 13px;border-radius:13px}
+.ranklist{margin-top:13px;gap:7px}
+.viewhead{margin-bottom:9px}
+.viewhead .footeract{gap:6px}
+.viewhead .btn{min-height:39px;padding:9px 12px}
+.chartcontrols{padding:11px 13px 1px;margin-bottom:11px}
+.chart-filterbar{margin-bottom:9px}
+.chart-options{gap:10px;justify-content:flex-start;margin:0 0 12px}
+.chart-options .switchgroup{flex:0 1 auto;min-width:0}
+.chart-options .seg button{padding:8px 10px;font-size:12px}
+.chart-options .seg{padding:3px}
+.entry-filters{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
+.entry-filters .field{flex:0 1 150px;min-width:100px}
+.entry-filters .today-btn{min-height:42px}
+@media (max-width:1100px){
+ .rank-filters{grid-template-columns:85px minmax(110px,1fr) minmax(112px,142px) minmax(123px,156px)}
+ .rank-filters:has(> :nth-child(3):last-child){grid-template-columns:85px minmax(110px,1fr) minmax(112px,142px)}
+ .chart-options{flex-wrap:wrap}
+}
+@media (max-width:760px){
+ .workspace{padding-top:12px}
+ .topbar{margin-bottom:10px}
+ .panel{padding:13px 11px}
+ .rank-filters{grid-template-columns:minmax(65px,.6fr) minmax(95px,1.1fr) minmax(95px,1fr);gap:7px}
+ .rank-filters:has(> :nth-child(3):last-child){grid-template-columns:minmax(65px,.6fr) minmax(95px,1.1fr) minmax(95px,1fr)}
+ .rank-filters:has(> :nth-child(2):last-child){grid-template-columns:minmax(80px,.7fr) minmax(120px,1fr)}
+ .rank-filters .field:nth-child(4){grid-column:1 / -1}
+ .rank-filters .field select{min-height:39px;padding:8px 6px;font-size:12px}
+ .rank-filters .field label{font-size:10px}
+ .sectionlead h2{font-size:clamp(26px,7vw,31px)}
+ .periodpill{font-size:13px;padding:5px 12px}
+ .sectionlead p{font-size:12px}
+ .stat{padding:9px 6px}
+ .stats{margin:10px 0 12px}
+ .viewhead{gap:9px}
+ .viewhead .footeract{justify-content:flex-start}
+ .viewhead .btn{padding:8px 9px;font-size:11px;min-height:35px}
+ .chartcontrols{padding:10px 9px 1px}
+ .chart-options{gap:7px}
+ .chart-options .seg button{padding:7px 8px;font-size:11px}
+ .chart-filterbar .field{flex:1 1 120px;min-width:90px}
+ .entry-filters .field{min-width:75px;flex:1 1 85px}
+ .entry-filters .today-btn{flex:1 1 100%;min-height:35px}
+ .rankitem.top .award{height:77px;width:58px}
+}
+@media (max-width:390px){
+ .rank-filters{grid-template-columns:minmax(59px,.55fr) minmax(87px,1fr) minmax(86px,1fr)}
+ .viewhead .btn{font-size:10px}
+}
+
+/* v7 — reducir el hueco, manteniendo una columna de nombres de ancho uniforme. */
+.rankitem.other{grid-template-columns:40px 154px minmax(54px,1fr) minmax(76px,auto);column-gap:13px}
+@media(max-width:1000px){.rankitem.other{grid-template-columns:36px 132px minmax(40px,1fr) minmax(66px,auto);column-gap:10px}}
+@media(max-width:760px){.rankitem.other{grid-template-columns:32px clamp(91px,24vw,112px) minmax(24px,1fr) minmax(43px,auto);column-gap:7px}}
+@media(max-width:380px){.rankitem.other{grid-template-columns:30px 81px minmax(20px,1fr) minmax(42px,auto);column-gap:6px}}
+
+/* v8: Top 3 — métricas y nombre sobre una barra de ancho completo.
+   Las tarjetas ya no ceden ancho de la barra cuando la cifra cambia de % a Q. */
+.rankitem.top{
+  grid-template-columns:88px minmax(0,1fr);
+  align-items:center;
+}
+.rankitem.top .rankdetails{
+  display:flex;
+  flex-direction:column;
+  gap:13px;
+  min-width:0;
+  width:100%;
+}
+.rankitem.top .rankheading{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) max-content;
+  gap:12px;
+  align-items:end;
+  width:100%;
+  min-width:0;
+}
+.rankitem.top .rankheading .rankname{min-width:0;overflow-wrap:anywhere}
+.rankitem.top .rankheading .rankmetric{min-width:0;white-space:nowrap;line-height:1.18}
+.rankitem.top .rankdetails .bar{width:100%;margin:0;flex:none}
+@media(max-width:1000px){
+  .rankitem.top{grid-template-columns:64px minmax(0,1fr)}
+  .rankitem.top .rankheading{gap:9px}
+}
+@media(max-width:760px){
+  .rankitem.top{grid-template-columns:56px minmax(0,1fr)}
+  .rankitem.top .rankheading{gap:6px;align-items:start}
+  .rankitem.top .rankdetails{gap:10px}
+  .rankitem.top .rankheading .rankmetric{font-size:clamp(17px,4.8vw,25px)}
+}
+@media(max-width:380px){
+  .rankitem.top{grid-template-columns:45px minmax(0,1fr)}
+  .rankitem.top .rankheading .rankmetric{font-size:clamp(16px,4.5vw,20px)}
+}
+</style>
+<link rel="manifest" href="./manifest.webmanifest"/>
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png"/>
+<meta name="application-name" content="Nun’z Ventas"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="description" content="Registro de ventas, ranking y evolución histórica de Nun’z Laboratorios."/>
+</head><body><div class="app"><aside class="sidebar"><div class="brand"><img id="brandLogo" alt="Nun’z Laboratorios" src="./assets/nunz-logo.png"/></div><nav id="nav" class="nav" aria-label="Navegación principal"></nav><div class="sidebarfoot">Nun’z Laboratorios<br/>Panel de desempeño comercial<br/>Aplicación web local</div></aside><main class="workspace"><header class="topbar" id="pageHeader"></header><div id="content"></div></main></div><div id="toast" role="status" class="toast"></div><script>(()=>{'use strict';
+const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const STORAGE='nunz-sales-v2';
+const LEGACY_STORAGE='nunz-sales-v1';
+const $=q=>document.querySelector(q);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>'Q'+Number(n||0).toLocaleString('es-GT',{maximumFractionDigits:0});
+const pct=n=>`${Math.round(n||0)}%`;
+const ym=(y,m)=>`${y}-${String(m).padStart(2,'0')}`;
+const weekKey=(y,m,w)=>`${ym(y,m)}-S${w}`;
+const weekCount=(y,m)=>4;
+const dateRange=(y,m,w)=>{let end=w===4?new Date(y,m,0).getDate():Math.min(new Date(y,m,0).getDate(),w*7);return `${(w-1)*7+1}–${end} de ${MONTHS[m-1].toLowerCase()}`;};
+const arr=s=>Object.entries(s||{});
+const today=new Date();
+const currentPeriod=()=>{const d=new Date();return {year:d.getFullYear(),month:d.getMonth()+1,week:Math.min(4,Math.ceil(d.getDate()/7))};};
+function demoStore(){
+  const sellers=['Andrea López','Carlos Méndez','Sofía Ramírez','Luis Pérez','María José','José Cifuentes','Daniela Ortiz','Pedro García'].map((name,i)=>({id:`v${i+1}`,name,active:true}));
+  const records={};
+  for(let y=2024;y<=2026;y++)for(let m=1;m<=12;m++){
+    if(y===2026&&m>11)continue;
+    let k=ym(y,m);records[k]={};
+    sellers.forEach((s,i)=>{
+      const goal=100000-i*3200,rate=.77+(y-2024)*.09+m*.017-i*.057+Math.sin(m+i)*.027;
+      records[k][s.id]={goal,sales:Math.round(goal*rate/100)*100};
+    });
+  }
+  const names=['v1','v2','v3','v4','v5','v6','v7','v8'];
+  const values=[128000,112000,103000,96000,91000,87000,79000,68000];
+  records['2026-11']={};names.forEach((id,i)=>records['2026-11'][id]={goal:100000,sales:values[i]});
+  return {sellers,records,weeks:demoSplit(records),monthlyGoals:{},weekDrafts:{},drafts:{},demo:true,weeklySchema:'cumulative-monthly-v1'};
+}
+function demoSplit(records){
+  // Sólo para los datos ficticios: cada reporte semanal es un acumulado contra la meta mensual.
+  const weeks={};
+  for(const [k,people] of arr(records)){
+    const [year,month]=k.split('-').map(Number),n=weekCount(year,month);
+    for(const [id,r] of arr(people)){
+      let weights=Array.from({length:n},(_,i)=>1+0.08*Math.sin(i*2.1+id.length+month));
+      let sum=weights.reduce((a,b)=>a+b,0),cum=0;
+      for(let w=1;w<=n;w++){
+        let sale=w===n?r.sales-cum:Math.round(r.sales*weights[w-1]/sum);
+        cum+=sale;
+        (weeks[weekKey(year,month,w)]??={})[id]={sales:cum};
+      }
+    }
+  }
+  return weeks;
+}
+function migrateStore(input){
+  const data=input||demoStore();
+  data.records??={};data.weeks??={};data.weekDrafts??={};data.drafts??={};data.monthlyGoals??={};data.monthlyGoalReview??={};data.autoBackupOnWeek??=true;
+  // Se conserva el respaldo del navegador anterior (nunz-sales-v1) sin modificar.
+  if(!['cumulative-monthly-v1','weekly-delta-v2','weekly-delta-four-v3'].includes(data.weeklySchema)){
+    const weeklyGoals={};
+    for(const [k,people] of arr(data.weeks)){
+      const m=k.match(/^(\d{4}-\d{2})-S([1-5])$/);if(!m)continue;
+      for(const [id,r] of arr(people)){
+        if(Number(r?.goal)>0){
+          const x=(weeklyGoals[m[1]]??={})[id]??={sum:0,weeks:new Set()};
+          x.sum+=Number(r.goal);x.weeks.add(Number(m[2]));
+        }
+      }
+    }
+    for(const [k,people] of arr(data.records))for(const [id,r] of arr(people)){
+      if(Number(r?.goal)>0)(data.monthlyGoals[k]??={})[id]=Number(r.goal);
+    }
+    for(const [month,goals] of arr(weeklyGoals))for(const [id,x] of arr(goals)){
+      const [y,m]=month.split('-').map(Number),n=weekCount(y,m);
+      if(x.weeks.size===n){
+        (data.monthlyGoals[month]??={})[id]??=x.sum;
+      }else if(!(Number((data.monthlyGoals[month]||{})[id])>0)){
+        // No se puede calcular una meta mensual a partir de semanas incompletas.
+        (data.monthlyGoalReview??={})[month]??=[];
+        if(!data.monthlyGoalReview[month].includes(id))data.monthlyGoalReview[month].push(id);
+      }
+    }
+    const oldWeeks=data.weeks,oldDrafts=data.weekDrafts,converted={},cumulative={},convertedDrafts={};
+    const sorted=Object.keys(oldWeeks).sort();
+    for(const k of sorted){
+      const m=k.match(/^(\d{4}-\d{2})-S[1-5]$/);if(!m)continue;
+      for(const [id,r] of arr(oldWeeks[k])){
+        const val=Number(r?.sales);
+        if(!Number.isFinite(val)||val<0)continue;
+        let mTotals=cumulative[m[1]]??={};mTotals[id]=(mTotals[id]||0)+val;
+        (converted[k]??={})[id]={sales:mTotals[id]};
+      }
+    }
+    // Los borradores antiguos eran ventas de una semana, no acumuladas: convertirlos también.
+    for(const [k,people] of arr(oldDrafts)){
+      const m=k.match(/^(\d{4}-\d{2})-S([1-5])$/);if(!m)continue;
+      for(const [id,r] of arr(people)){
+        const val=Number(r?.sales);let prev=0;
+        for(let w=1;w<Number(m[2]);w++){
+          const prior=(converted[`${m[1]}-S${w}`]||{})[id];
+          if(prior)prev=Number(prior.sales)||0;
+        }
+        (convertedDrafts[k]??={})[id]={goal:r?.goal==null?'':(data.monthlyGoals[m[1]]||{})[id]||'',sales:r?.sales===''?'':Number.isFinite(val)?prev+val:''};
+      }
+    }
+    data.weeks=converted;data.weekDrafts=convertedDrafts;
+  }
+  // Si falta el desglose, generar semanas ficticias sólo para la demostración.
+  if(data.demo&&!Object.keys(data.weeks).length){data.weeks=demoSplit(data.records);data.weeklySchema='cumulative-monthly-v1';}
+  // Convertir snapshots ACUMULADOS de versiones anteriores a incrementos reales por semana.
+  // Esta conversión ocurre una sola vez: la versión nueva ya guarda incrementos directamente.
+  if(!['weekly-delta-v2','weekly-delta-four-v3'].includes(data.weeklySchema)){
+    const seen={};
+    for(const k of Object.keys(data.weeks).sort()){
+      const m=k.match(/^(\d{4}-\d{2})-S[1-5]$/);if(!m)continue;
+      for(const [id,r] of arr(data.weeks[k])){
+        if(!r||!Number.isFinite(Number(r.sales)))continue;
+        const key=m[1]+'|'+id, cumulative=Number(r.sales);
+        const prev=seen[key]??0;
+        data.weeks[k][id]={sales:cumulative-prev};
+        seen[key]=cumulative;
+      }
+    }
+  }
+  for(const [k,people] of arr(data.records))for(const [id,r] of arr(people)){
+    if(Number(r?.goal)>0)(data.monthlyGoals[k]??={})[id]??=Number(r.goal);
+  }
+  // La edición anterior repartía los días 29–fin en una S5.
+  // Migramos automáticamente sus incrementos a S4 para conservar el total del mes.
+  if(data.weeklySchema!=='weekly-delta-four-v3'){
+    for(const k of Object.keys(data.weeks)){
+      if(!/^\d{4}-\d{2}-S5$/.test(k))continue;
+      const k4=k.replace(/-S5$/,'-S4');
+      data.weeks[k4]??={};
+      for(const [id,r] of arr(data.weeks[k])){
+        const prev=Number(data.weeks[k4][id]?.sales)||0;
+        data.weeks[k4][id]={sales:prev+(Number(r.sales)||0)};
+      }
+      delete data.weeks[k];
+    }
+    for(const k of Object.keys(data.weekDrafts)){
+      if(!/^\d{4}-\d{2}-S5$/.test(k))continue;
+      const k4=k.replace(/-S5$/,'-S4');
+      data.weekDrafts[k4]={...(data.weekDrafts[k4]||{}),...data.weekDrafts[k]};
+      delete data.weekDrafts[k];
+    }
+  }
+  data.weeklySchema='weekly-delta-four-v3';
+  return data;
+}
+let store;
+try{store=JSON.parse(localStorage.getItem(STORAGE)||localStorage.getItem(LEGACY_STORAGE)||'null');}catch{}
+if(!store||!Array.isArray(store.sellers)||typeof store.records!=='object')store={sellers:[],records:{},weeks:{},monthlyGoals:{},weekDrafts:{},drafts:{},demo:false,weeklySchema:'weekly-delta-four-v3',autoBackupOnWeek:true};
+store=migrateStore(store);
+let ui={page:(store.sellers.length?'ranking':'team'),year:today.getFullYear(),month:today.getMonth()+1,week:Math.min(4,Math.ceil(today.getDate()/7)),
+  rankPeriod:'month',mode:'percent',chartPeriod:'monthly',chartStyle:'points',historyMonth:'all',filter:'all',entryIds:[],entryIndex:0};
+// The demo shows November 2026 by default; real installations start in the current month.
+if(store.demo){ui.year=2026;ui.month=11;ui.week=3;}
+let toastTimer;
+const save=()=>{try{localStorage.setItem(STORAGE,JSON.stringify(store));return true}catch{showToast('No se pudo guardar: descarga un respaldo y revisa el almacenamiento');return false}};
+const active=()=>store.sellers.filter(s=>s.active);
+const seller=id=>store.sellers.find(s=>s.id===id);
+function validRecord(r){return r&&Number.isFinite(Number(r.goal))&&Number(r.goal)>0&&Number.isFinite(Number(r.sales))&&Number(r.sales)>=0;}
+function recordsToRows(recs){return arr(recs).filter(([id,r])=>seller(id)&&validRecord(r)).map(([id,r])=>({id,name:seller(id).name,goal:Number(r.goal),sales:Number(r.sales),percent:Number(r.sales)/Number(r.goal)*100}));}
+function aggregate(rows){return rows.reduce((a,r)=>(a.sales+=Number(r.sales),a.goal+=Number(r.goal),a),{sales:0,goal:0});}
+function sumBySeller(rows){const map=new Map();for(const r of rows){let x=map.get(r.id)||{id:r.id,name:r.name,goal:0,sales:0};x.goal+=r.goal;x.sales+=r.sales;map.set(r.id,x)}return [...map.values()].map(r=>({...r,percent:r.goal?100*r.sales/r.goal:0}));}
+function goalFor(id,y,m,old={}){
+  const monthly=Number((store.monthlyGoals[ym(y,m)]||{})[id]);
+  if(Number.isFinite(monthly)&&monthly>0)return monthly;
+  const legacy=Number((store.records[ym(y,m)]||{})[id]?.goal);
+  if(Number.isFinite(legacy)&&legacy>0)return legacy;
+  const fallback=Number(old?.goal);
+  return Number.isFinite(fallback)&&fallback>0?fallback:null;
+}
+// La BD sólo almacena ventas de cada semana (deltas); las metas se almacenan una vez por mes.
+function weekSales(id,y,m,w){
+  const r=(store.weeks[weekKey(y,m,w)]||{})[id];
+  return r&&Number.isFinite(Number(r.sales))?Number(r.sales):null;
+}
+function cumulativeThrough(id,y,m,w){
+  let sum=0,seen=false;
+  for(let i=1;i<=w;i++){const v=weekSales(id,y,m,i);if(v!==null){sum+=v;seen=true;}}
+  return seen?sum:null;
+}
+function monthIds(y,m){
+  const ids=new Set();for(let w=1;w<=weekCount(y,m);w++)for(const id of Object.keys(store.weeks[weekKey(y,m,w)]||{}))ids.add(id);
+  return [...ids].filter(id=>seller(id));
+}
+function hasWeeklyMonth(y,m){return monthIds(y,m).length>0;}
+function weekRows(y,m,w){
+  // Vista histórica: ventas individuales realizadas DURANTE la semana.
+  const ids=monthIds(y,m);
+  if(!Object.keys(store.weeks[weekKey(y,m,w)]||{}).some(id=>ids.includes(id)))return [];
+  return ids.map(id=>({id,name:seller(id).name,goal:(goalFor(id,y,m)||0)/4,sales:weekSales(id,y,m,w)??0}))
+    .filter(r=>r.goal>0).map(r=>({...r,percent:100*r.sales/r.goal}));
+}
+function weekRankingRows(y,m,w){
+  // Vista de ranking: SUMA hasta la semana seleccionada / meta MENSUAL completa.
+  return monthIds(y,m).filter(id=>cumulativeThrough(id,y,m,w)!==null)
+    .map(id=>({id,name:seller(id).name,goal:goalFor(id,y,m),sales:cumulativeThrough(id,y,m,w)}))
+    .filter(r=>r.goal>0).map(r=>({...r,percent:100*r.sales/r.goal}));
+}
+function monthRows(y,m){
+  if(hasWeeklyMonth(y,m))return monthIds(y,m).map(id=>({id,name:seller(id).name,goal:goalFor(id,y,m),sales:cumulativeThrough(id,y,m,weekCount(y,m))}))
+    .filter(r=>r.goal>0).map(r=>({...r,percent:100*r.sales/r.goal}));
+  // Sólo para datos mensuales históricos de versiones anteriores sin desglose semanal.
+  return recordsToRows(store.records[ym(y,m)]||{});
+}
+function annualRows(y){
+  // La meta anual evaluada suma UNA VEZ las metas de los meses con ventas reportadas.
+  // No inventamos objetivos de meses futuros que todavía no se han registrado.
+  return sumBySeller(MONTHS.flatMap((_,i)=>monthRows(y,i+1)));
+}
+function rangeRows(y,m){return ui.rankPeriod==='annual'?annualRows(y):ui.rankPeriod==='week'?weekRankingRows(y,m,ui.week):monthRows(y,m);}
+function filterRows(rows){return ui.filter==='all'?rows:rows.filter(r=>r.id===ui.filter);}
+const icon=(name)=>({
+ trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4h10v7a5 5 0 0 1-10 0V4ZM7 6H4v2a4 4 0 0 0 4 4M17 6h3v2a4 4 0 0 1-4 4M12 16v4M7 21h10"/></svg>',
+ chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 19h18M4 15l5-5 4 3 6-8"/><circle cx="4" cy="15" r="1.5"/><circle cx="9" cy="10" r="1.5"/><circle cx="13" cy="13" r="1.5"/><circle cx="19" cy="5" r="1.5"/></svg>',
+ edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
+ users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6m1 4a5 5 0 0 1 4 5"/></svg>'
+})[name];
+function nav(){const data=[['ranking','trophy','Ranking de ventas'],['history','chart','Progreso histórico'],['entry','edit','Registrar ventas'],['team','users','Equipo de ventas']];$('#nav').innerHTML=data.map(([id,i,label])=>`<button class="navbtn ${ui.page===id?'active':''}" data-page="${id}" aria-current="${ui.page===id?'page':'false'}">${icon(i)}<span>${label}</span></button>`).join('');}
+function title(t,sub){$('#pageHeader').innerHTML=`<div><div class="kicker">NUN’Z · DESEMPEÑO COMERCIAL</div><h1>${esc(t)}</h1><p>${esc(sub)}</p></div>${store.demo?'<span class="demo">Datos ficticios</span>':''}`;}
+function yearSelect(){const years=[...new Set([...Object.keys(store.records||{}),...Object.keys(store.weeks||{})].map(k=>Number(k.slice(0,4))).filter(Number.isFinite)),ui.year];for(let y=Math.min(ui.year-1,2024);y<=Math.max(ui.year+2,new Date().getFullYear()+1);y++)years.push(y);return `<div class="field"><label for="year">Año</label><select id="year">${[...new Set(years)].sort((a,b)=>b-a).map(y=>`<option value="${y}" ${ui.year===y?'selected':''}>${y}</option>`).join('')}</select></div>`;}
+function monthSelect(which='month',all=false){const value=which==='historyMonth'?ui.historyMonth:String(ui.month);return `<div class="field"><label for="${which}">Mes</label><select id="${which}">${all?`<option value="all" ${value==='all'?'selected':''}>Todo el año</option>`:''}${MONTHS.map((m,i)=>`<option value="${i+1}" ${String(value)===String(i+1)?'selected':''}>${m}</option>`).join('')}</select></div>`;}
+function weekSelect(){ui.week=Math.min(ui.week,weekCount(ui.year,ui.month));return `<div class="field"><label for="week">Semana</label><select id="week">${Array.from({length:weekCount(ui.year,ui.month)},(_,i)=>{let w=i+1;return `<option value="${w}" ${ui.week===w?'selected':''}>S${w} · ${dateRange(ui.year,ui.month,w).split(' de ')[0]}</option>`}).join('')}</select></div>`;}
+function seg(prop,opts){return `<div class="seg" role="group">${opts.map(([v,t])=>`<button type="button" class="${ui[prop]===v?'selected':''}" data-set="${prop}" data-value="${v}" aria-pressed="${ui[prop]===v}">${t}</button>`).join('')}</div>`;}
+function stats(items){return `<div class="stats">${items.map(([label,value,accent])=>`<div class="stat"><span class="lab">${esc(label)}</span><span class="value ${accent?'lit':''}">${esc(value)}</span></div>`).join('')}</div>`;}
+// Progress bars are capped at 100%; when over target the yellow overpaint starts at the RIGHT (100%) and grows LEFT.
+function progress(percent){
+  // La barra siempre se basa en el objetivo propio del vendedor, INDEPENDIENTEMENTE del modo numérico (% o Q).
+  const base=Math.max(0,Math.min(100,percent));
+  const extra=Math.max(0,Math.min(100,percent-100));
+  return `<div class="bar" role="img" aria-label="${pct(percent)} del objetivo"><div class="barfill" style="width:${base}%"></div>${extra>0?`<span class="bonus" style="width:${extra}%" title="Excedente: +${Math.round(percent-100)} puntos porcentuales"></span>`:''}</div>`;
+}
+function laurels(rank){
+  // Láminas de laurel dibujadas con Bézier: simetría perfecta, hojas puntiagudas, sin elipses deformadas.
+  const twig='<path d="M43 94 C25 91 16 78 17 62 C18 48 26 34 37 28" fill="none" stroke="#c3d200" stroke-width="2.25" stroke-linecap="round"/>';
+  const leaves=[
+    'M36 30 C28 25 27 17 33 12 C40 15 41 23 36 30Z',
+    'M28 40 C18 38 14 30 17 24 C27 24 31 32 28 40Z',
+    'M22 51 C13 52 8 46 8 38 C18 37 24 44 22 51Z',
+    'M19 64 C10 66 5 62 4 53 C13 52 20 57 19 64Z',
+    'M21 76 C13 80 7 77 4 69 C12 65 20 69 21 76Z',
+    'M29 86 C22 92 14 91 10 84 C18 78 26 79 29 86Z',
+    'M40 91 C34 98 25 100 19 95 C25 87 34 86 40 91Z'
+  ].map(d=>`<path d="${d}" fill="#d3df00"/>`).join('');
+  const branch=`<g>${twig}${leaves}</g>`;
+  const crown=rank===1?'<g transform="translate(0 -15)"><path d="M33 25 L29 9 L40 17 L50 4 L60 17 L71 9 L67 25 Z" fill="#ebdf00" stroke="#d8cf00" stroke-width="1.3"/><circle cx="50" cy="13" r="2.6" fill="white"/></g>':'';
+  return `${branch}<g transform="translate(100 0) scale(-1 1)">${branch}</g>${crown}<text x="50" y="${rank===1?76:72}" text-anchor="middle" font-family="Arial,sans-serif" font-size="${rank===1?39:43}" font-weight="800" fill="#06457d">${rank}</text>`;
+}
+function award(rank){return `<svg class="award" viewBox="0 -16 100 121" aria-label="Puesto ${rank}">${laurels(rank)}</svg>`;}
+function ranking(){
+  title('Ranking de ventas',ui.rankPeriod==='annual'?'Cumplimiento de objetivos de los meses registrados del año':'Avance acumulado frente al objetivo mensual');
+  const rows=rangeRows(ui.year,ui.month).sort((a,b)=>ui.mode==='percent'?(b.percent-a.percent||b.sales-a.sales):(b.sales-a.sales||b.percent-a.percent));
+  const team=aggregate(rows),teamPct=team.goal?team.sales/team.goal*100:0;
+  const titlePeriod=ui.rankPeriod==='annual'?`Año ${ui.year}`:ui.rankPeriod==='week'?`Semana ${ui.week} · ${MONTHS[ui.month-1]} ${ui.year}`:`${MONTHS[ui.month-1]} ${ui.year}`;
+  const value=r=>ui.mode==='percent'?pct(r.percent):money(r.sales);
+  const topSale=Math.max(1,...rows.map(r=>r.sales));
+  const list=rows.map((r,i)=>{
+    const top=i<3;
+    if(top)return `<div class="rankitem top ${i===0?'first':''}">${award(i+1)}<div class="rankdetails"><div class="rankheading"><div class="rankname">${esc(r.name)}</div><div class="rankmetric">${value(r)}</div></div>${progress(r.percent)}</div></div>`;
+    return `<div class="rankitem other"><div class="ranknum">${i+1}</div><div class="rankname">${esc(r.name)}</div>${progress(r.percent)}<div class="rankmetric">${value(r)}</div></div>`;
+  }).join('');
+  let metricCards=ui.mode==='percent'?[['Cumplimiento del equipo',pct(teamPct),true],['Vendedores evaluados',String(rows.length)],['Superaron la meta',String(rows.filter(r=>r.percent>100).length)]]:[['Ventas del equipo',money(team.sales)],['Vendedores evaluados',String(rows.length)],['Venta más alta',money(topSale===1?0:topSale)]];
+  $('#content').innerHTML=`<section class="panel"><div class="controlrow rank-filters">${yearSelect()}${ui.rankPeriod==='annual'?'':monthSelect()}<div class="field report-field"><label for="rankPeriod">Informe</label><select id="rankPeriod"><option value="week" ${ui.rankPeriod==='week'?'selected':''}>Semanal</option><option value="month" ${ui.rankPeriod==='month'?'selected':''}>Mensual</option><option value="annual" ${ui.rankPeriod==='annual'?'selected':''}>Anual</option></select></div>${ui.rankPeriod==='week'?weekSelect():''}</div><div class="sectionlead"><h2>Ranking de Ventas</h2><span class="periodpill">${esc(titlePeriod)}</span><p>${ui.rankPeriod==='annual'?'Objetivos cumplidos durante el año · meses registrados':ui.mode==='percent'?(ui.rankPeriod==='week'?'Acumulado frente a la meta mensual':'Cumplimiento de metas del equipo'):(ui.rankPeriod==='week'?'Ventas acumuladas del mes':'Ventas realizadas del equipo')}</p></div><div class="viewhead"><div class="switchgroup"><span>Visualizar</span>${seg('mode',[['percent','% Cumplimiento'],['amount','Valor total (Q)']])}</div><div class="footeract"><button class="btn secondary" data-action="exportRank">↓ Descargar PNG</button><button class="btn ghost" data-action="backup">↓ Respaldo JSON</button><button class="btn" data-action="shareRank">Compartir</button></div></div>${rows.length?`${stats(metricCards)}<div class="ranklist">${list}</div><div class="footerquote">¡Sigamos avanzando!</div><div class="footercurve"></div><p class="hint">${ui.rankPeriod==='annual'?'El cumplimiento anual considera las ventas y metas de los meses que tienen reportes, sin contar dos veces un objetivo mensual. Los meses aún sin reporte no se incluyen en el porcentaje.':ui.mode==='percent'?'Cada semana compara el acumulado con la meta mensual completa. El amarillo cubre el excedente superior al 100% desde la derecha hacia la izquierda.':'Las cifras se muestran en Q; las barras siempre representan el cumplimiento respecto al objetivo de cada vendedor. El amarillo destaca lo que supera el 100%.'}</p>`:`<div class="empty"><strong>Aún no hay datos para ${esc(titlePeriod)}.</strong>Registra las ventas semanales para generar el ranking.<p><button class="btn" data-page="entry">Registrar ventas</button></p></div>`}</section>`;
+}
+function series(){
+  const toPoint=(label,rows)=>{let a=aggregate(filterRows(rows));return {label,sales:a.sales,goal:a.goal,value:a.goal?(ui.mode==='percent'?100*a.sales/a.goal:a.sales):null};};
+  if(ui.chartPeriod==='weekly'){
+    let months=ui.historyMonth==='all'?Array.from({length:12},(_,i)=>i+1):[Number(ui.historyMonth)];
+    return months.flatMap(m=>Array.from({length:weekCount(ui.year,m)},(_,i)=>{
+      let w=i+1;let r=weekRows(ui.year,m,w);
+      return {...toPoint(ui.historyMonth==='all'?`${MONTHS[m-1].slice(0,3)} S${w}`:`S${w}`,r),subtitle:dateRange(ui.year,m,w)};
+    }));
+  }
+  if(ui.chartPeriod==='monthly')return MONTHS.map((m,i)=>toPoint(m.slice(0,3),monthRows(ui.year,i+1)));
+  const yearSet=[...new Set([...Object.keys(store.records),...Object.keys(store.weeks)].map(k=>Number(k.slice(0,4))).filter(Number.isFinite))].sort((a,b)=>a-b);
+  return yearSet.map(y=>toPoint(String(y),Array.from({length:12},(_,i)=>monthRows(y,i+1)).flat()));
+}
+function chartSVG(points,w=950,h=420,poster=false){
+  const pad={left:85,right:29,top:33,bottom:63},plotW=w-pad.left-pad.right,plotH=h-pad.top-pad.bottom;
+  const seriesVals=points.flatMap(p=>ui.mode==='amount'?[p.sales,p.goal]:[p.value]).filter(v=>v!==null&&Number.isFinite(v));
+  if(!seriesVals.length)return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img"><rect width="100%" height="100%" fill="#fff"/><text x="${w/2}" y="${h/2}" text-anchor="middle" font-size="20" fill="#6c7e93">No hay datos para esta selección</text></svg>`;
+  const minV=ui.mode==='percent'?Math.min(0,...seriesVals):Math.min(0,...seriesVals);
+  let maxV=ui.mode==='percent'?Math.max(100,Math.ceil((Math.max(...seriesVals)+8)/10)*10):Math.max(1,Math.max(...seriesVals)*1.13);
+  if(maxV<=minV)maxV=minV+10;
+  const x=i=>ui.chartStyle==='bars'?pad.left+(i+.5)*plotW/Math.max(1,points.length):pad.left+(points.length===1?.5:i/(points.length-1))*plotW;
+  const y=v=>pad.top+plotH-(v-minV)/(maxV-minV)*plotH;
+  let grid='';for(let i=0;i<=5;i++){
+    const v=minV+(maxV-minV)*i/5,yy=y(v);
+    const label=ui.mode==='percent'?`${Math.round(v)}%`:moneyCompact(v);
+    grid+=`<line x1="${pad.left}" y1="${yy}" x2="${w-pad.right}" y2="${yy}" stroke="#e5edf5"/><text x="${pad.left-12}" y="${yy+5}" text-anchor="end" font-size="${points.length>15?11:13}" fill="#657890">${label}</text>`;
+  }
+  const lines=[],dots=[];
+  const drawLine=(key,color,labelsOn,highlight=false)=>{
+    let batch=[];
+    const flush=()=>{if(batch.length>1)lines.push(`<path d="${batch.map((p,j)=>`${j?'L':'M'}${p.x} ${p.y}`).join(' ')}" fill="none" stroke="${color}" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>`);batch=[];};
+    points.forEach((p,i)=>{
+      const v=key==='value'?p.value:p[key];if(v===null||!Number.isFinite(v)){flush();return;}
+      const xx=x(i),yy=y(v);batch.push({x:xx,y:yy});
+      const glow=highlight&&v>100,fill=glow?'#d7e400':color;
+      dots.push(`<circle cx="${xx}" cy="${yy}" r="${points.length>24?4:6}" fill="${fill}" stroke="#fff" stroke-width="2"><title>${esc(p.subtitle||p.label)} · ${key==='value'?pct(v):money(v)}</title></circle>`);
+      if(labelsOn&&(points.length<=13||i%3===0))dots.push(`<text x="${xx}" y="${yy-14}" text-anchor="middle" font-size="${points.length>13?11:13}" font-weight="750" fill="#123e76">${key==='value'?pct(v):moneyCompact(v)}</text>`);
+    });flush();
+  };
+  let plots='';
+  if(ui.chartStyle==='bars'){
+    const groupW=Math.min(42,plotW/Math.max(1,points.length)*.7),dual=ui.mode==='amount',barW=dual?groupW/2-2:groupW;
+    points.forEach((p,i)=>{
+      if(p.value===null)return;
+      const a=ui.mode==='percent'?p.value:p.sales;
+      const baseY=y(Math.max(0,a)),bottomY=y(Math.min(0,a));
+      const left=x(i)-groupW/2;
+      plots+=`<rect x="${left}" y="${baseY}" width="${barW}" height="${Math.max(1,Math.abs(bottomY-baseY))}" rx="${Math.min(5,barW/3)}" fill="#0875c5"><title>${esc(p.label)} ventas: ${ui.mode==='percent'?pct(a):money(a)}</title></rect>`;
+      if(dual){let targetY=y(Math.max(0,p.goal));plots+=`<rect x="${left+barW+4}" y="${targetY}" width="${barW}" height="${Math.max(1,Math.abs(y(0)-targetY))}" rx="${Math.min(5,barW/3)}" fill="#d8e600"><title>${esc(p.label)} meta: ${money(p.goal)}</title></rect>`;}
+      else if(a>100){const upper=y(a),lower=y(100);plots+=`<rect x="${left}" y="${upper}" width="${barW}" height="${Math.max(0,lower-upper)}" rx="4" fill="#dce600"/>`;}
+    });
+  }else{
+    drawLine(ui.mode==='percent'?'value':'sales','#0875c5',true,ui.mode==='percent');
+    if(ui.mode==='amount')drawLine('goal','#d0dc00',false);
+    plots=lines.join('')+dots.join('');
+  }
+  let goalLine=ui.mode==='percent'&&minV<=100&&maxV>=100?`<line x1="${pad.left}" y1="${y(100)}" x2="${w-pad.right}" y2="${y(100)}" stroke="#8896a7" stroke-width="1.8" stroke-dasharray="7 5"/>`:'';
+  const step=points.length>40?5:points.length>25?3:points.length>14?2:1;
+  const labels=points.map((p,i)=>i%step===0||i===points.length-1?`<text x="${x(i)}" y="${h-30}" text-anchor="middle" font-size="${points.length>20?10:13}" fill="#586b85">${esc(p.label)}</text>`:'').join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Ventas del período y objetivo mensual o anual"><rect width="${w}" height="${h}" fill="#fff"/>${grid}${goalLine}${plots}${labels}<text x="${w/2}" y="${h-5}" text-anchor="middle" font-size="12" fill="#8190a3">${ui.chartPeriod==='weekly'?'Semanas':ui.chartPeriod==='monthly'?'Meses':'Años'} · ${ui.mode==='percent'?'Ventas del período / meta (%)':'Ventas y objetivos (Q)'}</text></svg>`;
+}
+function moneyCompact(v){return v>=1e6?`Q${(v/1e6).toFixed(1)}M`:v>=1000?`Q${Math.round(v/1000)}k`:money(v);}
+function historyTable(points){
+  const rows=points.map(p=>{
+    const valid=p.value!==null&&p.goal>0;
+    const percent=valid?100*p.sales/p.goal:null;
+    return `<tr><th scope="row">${esc(p.label)}</th><td>${valid?money(p.sales):'—'}</td><td>${valid?money(p.goal):'—'}</td><td class="${percent!==null&&percent>=100?'overgoal':''}">${valid?pct(percent):'—'}</td></tr>`;
+  }).join('');
+  return `<div class="tablewrap"><table class="historytable"><thead><tr><th>Período</th><th>Ventas (Q)</th><th>Objetivo (Q)</th><th>Cumplimiento</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function tablePoster(){
+  const pts=series(),list=pts,step=46,h=410+list.length*step+140;
+  const name=ui.filter==='all'?'Todo el equipo':seller(ui.filter)?.name||'Vendedor';
+  const subtitle=ui.chartPeriod==='weekly'?`Semanal ${ui.year}`:ui.chartPeriod==='monthly'?`Mensual ${ui.year}`:'Anual';
+  let out=`<rect x="40" y="340" width="1000" height="48" rx="10" fill="#eaf3fc"/>`;
+  const titles=[['Período',70],['Ventas (Q)',350],['Objetivo (Q)',650],['Cumplimiento',1010]];
+  for(const [label,x] of titles)out+=`<text x="${x}" y="371" text-anchor="${x===1010?'end':'start'}" fill="#063e83" font-size="23" font-weight="800">${esc(label)}</text>`;
+  list.forEach((p,i)=>{
+    const yy=388+i*step,valid=p.value!==null&&p.goal>0,pc=valid?100*p.sales/p.goal:null;
+    if(i%2===0)out+=`<rect x="40" y="${yy}" width="1000" height="${step}" fill="#f7fbff"/>`;
+    const columns=[[p.label,70],[valid?money(p.sales):'—',350],[valid?money(p.goal):'—',650],[valid?pct(pc):'—',1010]];
+    columns.forEach(([txt,x])=>out+=`<text x="${x}" y="${yy+31}" text-anchor="${x===1010?'end':'start'}" font-size="21" fill="${x===1010&&pc>=100?'#8ba300':'#164573'}" font-weight="${x===1010?'750':'550'}">${esc(txt)}</text>`);
+  });
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}" font-family="Arial,sans-serif"><rect width="1080" height="${h}" fill="#fff"/><text x="540" y="196" text-anchor="middle" font-size="48" font-weight="850" fill="#073f83">Progreso Histórico de Ventas</text><text x="540" y="260" text-anchor="middle" fill="#71829b" font-size="27">${esc(subtitle)} · ${esc(name)} · Tabla</text>${out}<rect x="0" y="${h-12}" width="1080" height="12" fill="#dce600"/></svg>`;
+}
+function history(){
+  title('Progreso histórico de ventas','Cumplimiento de metas y evolución comercial');
+  const pts=series();
+  const summaryRows=ui.chartPeriod==='weekly'
+    ? (ui.historyMonth==='all'?Array.from({length:12},(_,i)=>monthRows(ui.year,i+1)).flat():monthRows(ui.year,Number(ui.historyMonth)))
+    : pts.filter(p=>p.goal>0);
+  const a=aggregate(ui.chartPeriod==='weekly'?filterRows(summaryRows):summaryRows),ratio=a.goal?100*a.sales/a.goal:0;
+  let label=ui.chartPeriod==='annual'?'Comparación año por año':ui.chartPeriod==='monthly'?`Evolución mensual · ${ui.year}`:`Evolución semanal · ${ui.year}${ui.historyMonth==='all'?'':' · '+MONTHS[Number(ui.historyMonth)-1]}`;
+  const width=ui.chartPeriod==='weekly'&&ui.historyMonth==='all'?2100:950;
+  $('#content').innerHTML=`<section class="panel"><div class="sectionlead compact"><h2>Progreso Histórico de Ventas</h2><p>Cumplimiento de metas</p></div><div class="chartcontrols"><div class="controlrow chart-filterbar">${ui.chartPeriod!=='annual'?yearSelect():''}${ui.chartPeriod==='weekly'?monthSelect('historyMonth',true):''}<div class="field grow"><label for="sellerFilter">Vendedor</label><select id="sellerFilter"><option value="all">Todo el equipo</option>${store.sellers.map(s=>`<option value="${s.id}" ${ui.filter===s.id?'selected':''}>${esc(s.name)}${s.active?'':' (archivado)'}</option>`).join('')}</select></div></div><div class="controls chart-options"><div class="switchgroup"><span>Período</span>${seg('chartPeriod',[['weekly','Semanal'],['monthly','Mensual'],['annual','Anual']])}</div><div class="switchgroup"><span>Gráfico</span>${seg('chartStyle',[['points','Puntos + línea'],['bars','Barras'],['table','Tabla']])}</div><div class="switchgroup"><span>Mostrar</span>${seg('mode',[['percent','% Cumplimiento'],['amount','Valor total (Q)']])}</div></div></div>${stats([['Ventas del período',money(a.sales)],['Objetivo del período',money(a.goal)],['Cumplimiento',pct(ratio),true]])}<div class="viewhead"><h2>${esc(label)}</h2><div class="footeract"><button class="btn secondary" data-action="exportChart">↓ Descargar PNG</button><button class="btn" data-action="shareChart">Compartir</button></div></div><div class="chartbox">${ui.chartStyle==='table'?historyTable(pts):`<div class="chartscroll ${width>1000?'wide':''}">${chartSVG(pts,width,420)}</div>`}<div class="chartlegend" style="${ui.chartStyle==='table'?'display:none;':''}"><span><i class="${ui.chartStyle==='bars'?'legendbar':'legendline'}"></i> ${ui.mode==='percent'?'Cumplimiento':'Ventas'}</span>${ui.mode==='percent'?'<span><i class="legendgoal"></i> Meta 100%</span><span><i class="legendlime"></i> Sobre meta</span>':'<span><i class="legendlime"></i> Objetivo del período (Q)</span>'}</div></div><p class="hint">Sin datos = período sin reporte. Aquí se muestran incrementos semanales (no acumulados). Los meses y años suman esas semanas; la meta mensual cuenta una sola vez. En la gráfica semanal, cada objetivo equivale a un cuarto de la meta mensual y el porcentaje se calcula contra ese cuarto. Los registros mensuales antiguos sin desglose sólo aparecen por mes o año. ${ui.chartPeriod==='weekly'?'Siempre se utilizan cuatro semanas por mes: 1–7, 8–14, 15–21 y 22–fin de mes.':''}</p></section>`;
+}
+function team(){
+  title('Equipo de ventas','Administrar integrantes sin perder el historial');
+  $('#content').innerHTML=`<section class="panel"><h2>Agregar vendedor</h2><form id="addSeller" class="controlrow"><div class="field grow"><label for="sellerName">Nombre completo</label><input id="sellerName" type="text" maxlength="90" placeholder="Ej. Juan Pérez" required/></div><button class="btn" type="submit">+ Añadir al equipo</button></form>${Object.entries(store.monthlyGoalReview||{}).some(([month,ids])=>ids.some(id=>!(Number((store.monthlyGoals[month]||{})[id])>0)))?`<div class="note warning">Algunos datos semanales importados no permiten reconstruir la meta mensual. Abre esos meses en Registrar ventas y confirma las metas antes de confiar en los porcentajes.</div>`:''}<div class="note">Archivar un vendedor lo retira de nuevas tarjetas, pero conserva sus ventas para el historial. Puedes reactivarlo después.</div></section><section class="panel"><h2>Miembros activos (${active().length})</h2>${active().map(s=>`<div class="sellerrow"><div><div class="sellername">${esc(s.name)}</div><div class="tiny">Vendedor activo</div></div><button type="button" class="btn small warn" data-archive="${esc(s.id)}">Archivar</button></div>`).join('')||'<div class="empty">No hay vendedores activos.</div>'}</section>${store.sellers.some(s=>!s.active)?`<section class="panel"><h2>Vendedores archivados</h2>${store.sellers.filter(s=>!s.active).map(s=>`<div class="sellerrow archived"><div class="sellername">${esc(s.name)}</div><button class="btn small secondary" data-restore="${esc(s.id)}">Reactivar</button></div>`).join('')}</section>`:''}<section class="panel"><h2>Respaldo y transferencia</h2><p class="helptext">Los datos se guardan solamente en este navegador. Descarga respaldos JSON frecuentes; al cambiar de iPhone o computadora, importa el respaldo.</p><div class="backupsetting"><label><input type="checkbox" id="autoBackup" ${store.autoBackupOnWeek!==false?'checked':''}/> Descargar un respaldo JSON automáticamente al completar cada semana</label><small>El archivo se nombra únicamente con la fecha del último registro (AAAA-MM-DD.json). Safari puede solicitar autorización; revisa Descargas.</small></div><div class="footeract"><button class="btn secondary" data-action="backup">↓ Exportar respaldo JSON</button><label for="restoreFile" class="btn ghost" style="cursor:pointer">↑ Importar respaldo JSON</label><input id="restoreFile" class="fileinput" type="file" accept=".json,application/json"/></div></section>${store.demo?`<section class="panel"><h2>Comenzar con información real</h2><p class="helptext">Los vendedores y cifras actuales son ficticios. Borra la demostración antes de empezar a usar la aplicación en Nun’z.</p><button class="btn warn" data-action="clearDemo">Eliminar datos de prueba</button></section>`:''}`;
+}
+function entryKey(){return weekKey(ui.year,ui.month,ui.week);}
+function previousCumulative(id,y,m,w){return cumulativeThrough(id,y,m,w-1);}
+function nextReportedWeek(id,y,m,w){for(let i=w+1;i<=weekCount(y,m);i++)if(weekSales(id,y,m,i)!==null)return i;return null;}
+function startEntry(){ui.week=Math.min(ui.week,weekCount(ui.year,ui.month));ui.entryIds=active().map(s=>s.id);ui.entryIndex=0;entry();}
+function entry(){
+  title('Registrar ventas','Una meta por mes · ventas acumuladas por semana');
+  if(!ui.entryIds.length)ui.entryIds=active().map(s=>s.id);
+  let n=ui.entryIds.length;
+  if(!n){$('#content').innerHTML=`<section class="panel"><div class="empty"><strong>Primero agrega vendedores.</strong><button class="btn" data-page="team">Abrir Equipo de ventas</button></div></section>`;return;}
+  ui.entryIndex=Math.max(0,Math.min(n-1,ui.entryIndex));
+  const id=ui.entryIds[ui.entryIndex],prior=previousCumulative(id,ui.year,ui.month,ui.week);
+  const saved=(store.weeks[entryKey()]||{})[id]||{},d=(store.weekDrafts[entryKey()]||{})[id]||{};
+  const monthlyGoal=goalFor(id,ui.year,ui.month,saved);
+  const goal=d.goal??(monthlyGoal||'');
+  const sales=d.sales??(saved.sales!==undefined?cumulativeThrough(id,ui.year,ui.month,ui.week):null)??prior??'';
+  const existingLegacy=!!store.records[ym(ui.year,ui.month)]&&!hasWeeklyMonth(ui.year,ui.month);
+  $('#content').innerHTML=`<section class="panel"><div class="controlrow entry-filters">${yearSelect()}${monthSelect()}${weekSelect()}<button type="button" class="btn small secondary today-btn" data-action="goToday">↻ Semana actual</button></div><div class="note"><strong>Meta mensual fija:</strong> indica una sola meta para ${esc(MONTHS[ui.month-1])} y reutilízala en todas las semanas. <strong>Ventas acumuladas:</strong> escribe lo vendido desde el día 1 hasta el cierre de la semana ${ui.week}. El ranking compara el acumulado con el objetivo mensual. El historial guarda sólo el incremento de esta semana y suma las semanas para calcular los meses y años.</div>${existingLegacy?`<p class="note warning">Hay información mensual antigua para este período. Al registrar semanas se mostrará el acumulado semanal y se conservará el registro original en tu respaldo.</p>`:''}${(store.monthlyGoalReview[ym(ui.year,ui.month)]||[]).includes(id)?`<p class="note warning">Este vendedor tiene semanas importadas del formato antiguo, pero no suficientes datos para conocer la meta mensual. Confirma la meta real en el campo siguiente.</p>`:''}<div class="entrymeta"><strong>Vendedor ${ui.entryIndex+1} de ${n}</strong><span>Semana ${ui.week} · ${MONTHS[ui.month-1]} ${ui.year}</span></div><div class="steptrack"><span style="width:${100*ui.entryIndex/n}%"></span></div><div class="entrycard" id="swipeCard"><div class="avatar">👤</div><h2>${esc(seller(id)?.name||'Vendedor')}</h2><div class="subtitle">${esc(dateRange(ui.year,ui.month,ui.week))}</div><div class="field"><label for="goal">Objetivo mensual (Q)</label><input id="goal" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Ej. 100000" value="${esc(goal)}" autocomplete="off"/></div><div class="field"><label for="sales">Ventas acumuladas hasta esta semana (Q)</label><input id="sales" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Ej. 67000" value="${esc(sales)}" autocomplete="off"/></div><div class="note">${prior!==null?`Último acumulado anterior: <strong>${money(prior)}</strong>. `:''}La app guardará únicamente lo vendido en esta semana, calculado restando el acumulado anterior. Puedes corregir la meta mensual aquí.</div></div><div class="entryactions"><button class="btn ghost" data-action="prevEntry" ${ui.entryIndex===0?'disabled':''}>← Anterior</button><button class="btn" data-action="nextEntry">${ui.entryIndex===n-1?'✓ Completar semana':'Guardar y siguiente ←'}</button></div><div class="swipehint">← Desliza la tarjeta hacia la izquierda o usa el botón para continuar</div></section>`;
+  enableSwipe();
+}
+function draftEntry(){
+  const id=ui.entryIds[ui.entryIndex],a=$('#goal'),b=$('#sales');if(!id||!a||!b)return;
+  (store.weekDrafts[entryKey()]??={})[id]={goal:a.value,sales:b.value};save();
+}
+function captureEntry(){
+  const a=$('#goal'),b=$('#sales');if(!a||!b)return false;
+  const goal=Number(a.value),sales=Number(b.value),id=ui.entryIds[ui.entryIndex];
+  if(a.value.trim()===''||b.value.trim()===''||!Number.isFinite(goal)||!Number.isFinite(sales)||goal<=0||sales<0){showToast('Completa meta mensual (> Q0) y ventas acumuladas (≥ Q0)');return false;}
+  const prev=previousCumulative(id,ui.year,ui.month,ui.week);
+  if(prev!==null&&sales<prev){showToast(`El acumulado no puede ser menor que las ventas anteriores (${money(prev)}). Corrige la semana anterior si hubo un error.`);return false;}
+  const nextWeek=nextReportedWeek(id,ui.year,ui.month,ui.week);
+  if(nextWeek!==null){
+    const nextCum=cumulativeThrough(id,ui.year,ui.month,nextWeek);
+    if(nextCum!==null&&sales>nextCum){showToast(`El acumulado supera una semana posterior (${money(nextCum)}). Corrige ese reporte primero.`);return false;}
+  }
+  (store.monthlyGoals[ym(ui.year,ui.month)]??={})[id]=goal;
+  store.monthlyGoalReview[ym(ui.year,ui.month)]= (store.monthlyGoalReview[ym(ui.year,ui.month)]||[]).filter(x=>x!==id);
+  (store.weekDrafts[entryKey()]??={})[id]={goal,sales};save();return true;
+}
+function nextEntry(){if(!captureEntry())return;
+  if(ui.entryIndex<ui.entryIds.length-1){ui.entryIndex++;entry();return;}
+  const k=entryKey(),completed=store.weekDrafts[k]||{};
+  // Commit atómico del grupo: la entrada es acumulativa, el almacenamiento es INCREMENTAL.
+  // Si corregimos una semana pasada, reequilibramos la siguiente semana reportada para
+  // preservar los acumulados posteriores sin sumarlos dos veces.
+  const edits=[];
+  for(const [id,r] of arr(completed)){
+    const goal=Number(r.goal),cumulative=Number(r.sales),prior=previousCumulative(id,ui.year,ui.month,ui.week)??0;
+    if(!(goal>0)||!Number.isFinite(cumulative)||cumulative<prior){showToast('Revisa las cifras acumuladas antes de completar');return;}
+    const nextWeek=nextReportedWeek(id,ui.year,ui.month,ui.week),oldDelta=weekSales(id,ui.year,ui.month,ui.week)??0;
+    const newDelta=cumulative-prior,shift=newDelta-oldDelta;
+    if(nextWeek!==null&&(weekSales(id,ui.year,ui.month,nextWeek)??0)-shift<0){showToast(`El cambio afecta una semana posterior de ${seller(id)?.name}. Corrige los reportes en orden.`);return;}
+    edits.push({id,goal,newDelta,nextWeek,shift});
+  }
+  store.weeks[k]??={};
+  for(const e of edits){
+    (store.monthlyGoals[ym(ui.year,ui.month)]??={})[e.id]=e.goal;
+    store.weeks[k][e.id]={sales:e.newDelta};
+    if(e.nextWeek!==null)store.weeks[weekKey(ui.year,ui.month,e.nextWeek)][e.id].sales-=e.shift;
+  }
+  delete store.weekDrafts[k];store.weeklySchema='weekly-delta-four-v3';if(!save())return;
+  store.lastUpdateDate=localDateISO(new Date());save();
+  if(store.autoBackupOnWeek!==false)backup(true);
+  ui.rankPeriod='week';ui.page='ranking';render();showToast(store.autoBackupOnWeek!==false?'✓ Semana completada. Comprueba el respaldo JSON en Descargas.':'✓ Semana completada. Puedes descargar el respaldo desde el ranking.');
+}
+function prevEntry(){if(ui.entryIndex>0){draftEntry();ui.entryIndex--;entry()}}
+function enableSwipe(){
+  const card=$('#swipeCard');if(!card)return;
+  let start=null;
+  card.addEventListener('pointerdown',e=>{if(e.target.closest('input,button,select'))return;start={x:e.clientX,y:e.clientY};});
+  card.addEventListener('pointermove',e=>{if(!start)return;let dx=e.clientX-start.x,dy=e.clientY-start.y;if(Math.abs(dy)>70)return;card.style.transform=`translateX(${Math.min(0,dx)}px) rotate(${Math.min(0,dx)/50}deg)`;});
+  card.addEventListener('pointerup',e=>{if(!start)return;let dx=e.clientX-start.x;start=null;card.style.transform='';if(dx< -80)nextEntry();});
+  card.addEventListener('pointercancel',()=>{start=null;card.style.transform='';});
+}
+function showToast(s){const n=$('#toast');n.textContent=s;n.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>n.classList.remove('show'),3300);}
+function svgBar(x,y,w,percent){
+ const base=Math.max(0,Math.min(100,percent))*w/100;
+ const extra=Math.max(0,Math.min(100,percent-100))*w/100;
+ return `<rect x="${x}" y="${y}" width="${w}" height="15" rx="7" fill="#e3ebf2"/><rect x="${x}" y="${y}" width="${base}" height="15" rx="7" fill="#0875c5"/>${extra?`<rect x="${x+w-extra}" y="${y}" width="${extra}" height="15" rx="7" fill="#deea00" filter="url(#softGlow)"/>`:''}`;
+}
+function mark(h){return store.demo?`<text x="1030" y="${h-25}" text-anchor="end" font-size="16" fill="#8190a4">EJEMPLO · DATOS FICTICIOS</text>`:'';}
+function rankPoster(){
+  const rows=rangeRows(ui.year,ui.month).sort((a,b)=>ui.mode==='percent'?b.percent-a.percent:b.sales-a.sales);
+  const total=rows.length,bodyH=rows.reduce((a,r,i)=>a+(i<3?154:79),0)+(total?13*(total-1):0);
+  const h=430+bodyH+135,yStart=362,topAmount=Math.max(1,...rows.map(r=>r.sales));
+  let y=yStart,body='';
+  rows.forEach((r,i)=>{
+    const top=i<3,hh=top?154:79;
+    const v=ui.mode==='percent'?pct(r.percent):money(r.sales);
+    body+=`<rect x="39" y="${y}" width="1002" height="${hh}" rx="${top?26:9}" fill="#fff" stroke="${i===0?'#dce700':'#e6edf4'}" stroke-width="${i===0?'3':'1.5'}"/>`;
+    if(top){body+=`<g transform="translate(61 ${y+19}) scale(1.04)">${laurels(i+1)}</g><text x="175" y="${y+67}" font-size="${Math.min(36,r.name.length>21?28:35)}" font-weight="780" fill="#0d467f">${esc(r.name)}</text><text x="998" y="${y+67}" text-anchor="end" font-size="44" font-weight="820" fill="#0d467f">${esc(v)}</text>${svgBar(177,y+103,817,r.percent)}`;}
+    else{body+=`<rect x="56" y="${y+17}" width="45" height="45" rx="12" fill="#eaf3fa"/><text x="78.5" y="${y+49}" text-anchor="middle" font-size="25" font-weight="800" fill="#0d467f">${i+1}</text><text x="132" y="${y+48}" font-size="${r.name.length>18?19:24}" font-weight="680" fill="#254a75">${esc(r.name.length>19?r.name.slice(0,18)+'…':r.name)}</text><text x="1008" y="${y+49}" font-size="27" text-anchor="end" font-weight="780" fill="#0d467f">${esc(v)}</text>${svgBar(375,y+34,490,r.percent)}`;}
+    y+=hh+13;
+  });
+  const date=ui.rankPeriod==='annual'?`Año ${ui.year}`:ui.rankPeriod==='week'?`Semana ${ui.week} · ${MONTHS[ui.month-1]} ${ui.year}`:`${MONTHS[ui.month-1]} ${ui.year}`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}" font-family="Arial,sans-serif"><defs><filter id="softGlow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="1080" height="${h}" fill="#fff"/><rect x="0" y="${h-13}" width="1080" height="13" fill="#dfe900"/><text x="540" y="205" text-anchor="middle" font-size="64" font-weight="850" fill="#083f83">Ranking de Ventas</text><rect x="300" y="223" width="480" height="53" rx="27" fill="#e2eb00"/><text x="540" y="259" text-anchor="middle" font-size="30" fill="#064c91" font-weight="810">${esc(date)}</text><text x="540" y="318" text-anchor="middle" font-style="italic" font-size="28" fill="#73829a">${ui.rankPeriod==='annual'?(ui.mode==='percent'?'Cumplimiento sobre objetivos de meses reportados':'Ventas de meses reportados'):ui.mode==='percent'?(ui.rankPeriod==='week'?'Acumulado de ventas frente a la meta mensual':'Cumplimiento de metas del equipo'):(ui.rankPeriod==='week'?'Ventas acumuladas del mes':'Ventas realizadas del equipo')}</text>${body}<text x="540" y="${h-92}" text-anchor="middle" font-size="36" font-style="italic" font-weight="750" fill="#073f83">¡Sigamos avanzando!</text><path d="M390 ${h-73} Q540 ${h-90} 690 ${h-73}" fill="none" stroke="#dbe900" stroke-width="5"/>${mark(h)}</svg>`;
+}
+function chartPoster(){
+ if(ui.chartStyle==='table')return tablePoster();
+ const pts=series(),width=1000,graph=chartSVG(pts,1000,470,true).replace(/<svg[^>]*>/,'<g transform="translate(40 310)">').replace(/<\/svg>$/,'</g>');
+ const a=aggregate(ui.chartPeriod==='weekly'?filterRows(ui.historyMonth==='all'?Array.from({length:12},(_,i)=>monthRows(ui.year,i+1)).flat():monthRows(ui.year,Number(ui.historyMonth))):pts.filter(p=>p.goal>0));
+ const detail=ui.chartPeriod==='weekly'?`Semanal ${ui.year} · ${ui.historyMonth==='all'?'Todo el año':MONTHS[Number(ui.historyMonth)-1]}`:ui.chartPeriod==='monthly'?`Mensual ${ui.year}`:'Comparación anual';
+ const name=ui.filter==='all'?'Todo el equipo':seller(ui.filter)?.name||'Vendedor';
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="900" viewBox="0 0 1080 900" font-family="Arial,sans-serif"><rect width="1080" height="900" fill="white"/><rect width="1080" height="11" fill="#e1eb00"/><text x="540" y="180" font-size="49" text-anchor="middle" font-weight="850" fill="#073f83">Progreso Histórico de Ventas</text><text x="540" y="232" text-anchor="middle" fill="#74839a" font-size="25">${esc(detail)} · ${esc(name)}</text><text x="55" y="276" fill="#073f83" font-size="22" font-weight="700">${ui.mode==='percent'?'Cumplimiento':'Ventas'} · ${ui.chartStyle==='points'?'Puntos + línea':'Barras'}</text>${graph}<text x="540" y="833" fill="#073f83" text-anchor="middle" font-size="21">Ventas: ${money(a.sales)}  ·  Meta: ${money(a.goal)}  ·  Cumplimiento: ${pct(a.goal?100*a.sales/a.goal:0)}</text>${mark(900)}</svg>`;
+}
+// A share sheet when supported on iOS; otherwise a normal PNG download.
+async function renderPNG(svg,filename,share){
+ try{
+  const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'}),url=URL.createObjectURL(blob);
+  const img=await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=url;});
+  const w=Number(img.naturalWidth),h=Number(img.naturalHeight);const c=document.createElement('canvas');c.width=w;c.height=h;
+  let ctx=c.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0);URL.revokeObjectURL(url);
+  // Embed the actual Nun'z logo in the exported PNG, with its preserved proportions.
+  let official=$('#brandLogo');if(official&&official.complete&&official.naturalWidth){let aspect=official.naturalWidth/official.naturalHeight;let logoW=280,logoH=logoW/aspect;ctx.drawImage(official,(w-logoW)/2,10,logoW,logoH);}
+  const png=await new Promise(res=>c.toBlob(res,'image/png'));
+  if(!png)throw Error('canvas');
+  const file=new File([png],filename+'.png',{type:'image/png'});
+  if(share&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:'Nun’z Laboratorios'});return;}catch(e){if(e.name==='AbortError')return;}
+  }
+  const objectURL=URL.createObjectURL(png),a=document.createElement('a');a.href=objectURL;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(objectURL),4000);
+  showToast('Imagen PNG preparada');
+ }catch(e){console.error(e);showToast('No se pudo preparar la imagen PNG en este navegador');}
+}
+function localDateISO(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function backup(auto=false){
+  // Sólo fecha del último registro. Descargas repetidas el mismo día pueden recibir (1), (2)… del navegador.
+  const file=`${store.lastUpdateDate||localDateISO(new Date())}.json`;
+  const blob=new Blob([JSON.stringify(store,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=file;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),6000);
+  if(!auto)showToast('Respaldo solicitado; comprueba la carpeta Descargas');
+}
+function render(){nav();({ranking,history,entry,team}[ui.page]||ranking)();}
+function rerender(){if(ui.page==='entry')startEntry();else render();}
+document.addEventListener('click',e=>{
+  const page=e.target.closest('[data-page]');if(page){ui.page=page.dataset.page;if(ui.page==='entry'){Object.assign(ui,currentPeriod());startEntry();}else render();return;}
+  const set=e.target.closest('[data-set]');if(set){ui[set.dataset.set]=set.dataset.value;render();return;}
+  const arch=e.target.closest('[data-archive]');if(arch){const s=seller(arch.dataset.archive);if(s&&confirm(`¿Archivar a ${s.name}? Se conservará su historial.`)){s.active=false;save();render();}return;}
+  const re=e.target.closest('[data-restore]');if(re){let s=seller(re.dataset.restore);if(s){s.active=true;save();render();}return;}
+  const action=e.target.closest('[data-action]');if(!action)return;
+  switch(action.dataset.action){
+    case 'nextEntry':nextEntry();break;
+    case 'prevEntry':prevEntry();break;
+    case 'exportRank':case 'shareRank':if(rangeRows(ui.year,ui.month).length)renderPNG(rankPoster(),`Nunz_Ranking_${ui.rankPeriod==='annual'?ui.year:ui.rankPeriod==='month'?ym(ui.year,ui.month):entryKey()}_${ui.rankPeriod}_${ui.mode}`,action.dataset.action==='shareRank');else showToast('No hay resultados para exportar');break;
+    case 'exportChart':case 'shareChart':renderPNG(chartPoster(),`Nunz_Progreso_${ui.chartPeriod}_${ui.year}_${ui.mode}`,action.dataset.action==='shareChart');break;
+    case 'backup':backup();break;
+    case 'goToday':Object.assign(ui,currentPeriod());startEntry();showToast('Se seleccionó el período actual');break;
+    case 'clearDemo':if(confirm('¿Eliminar todos los datos y vendedores de demostración? Se perderán si no guardas un respaldo.')){store=migrateStore({sellers:[],records:{},weeks:{},monthlyGoals:{},weekDrafts:{},drafts:{},demo:false,weeklySchema:'weekly-delta-four-v3',autoBackupOnWeek:true});save();ui.page='team';render();showToast('Datos ficticios eliminados.');}break;
+  }
+});
+document.addEventListener('change',e=>{
+  const id=e.target.id,v=e.target.value;
+  if(id==='restoreFile'){let f=e.target.files?.[0];if(f)restore(f);return;}
+  if(id==='autoBackup'){store.autoBackupOnWeek=e.target.checked;save();return;}
+  if(id==='rankPeriod'){ui.rankPeriod=v;render();return;}
+  if(id==='year'){ui.year=Number(v);ui.week=Math.min(ui.week,weekCount(ui.year,ui.month));rerender();return;}
+  if(id==='month'){ui.month=Number(v);ui.week=Math.min(ui.week,weekCount(ui.year,ui.month));rerender();return;}
+  if(id==='week'){ui.week=Number(v);rerender();return;}
+  if(id==='historyMonth'){ui.historyMonth=v;render();return;}
+  if(id==='sellerFilter'){ui.filter=v;render();return;}
+});
+document.addEventListener('input',e=>{if(e.target.matches('#goal,#sales'))draftEntry();});
+document.addEventListener('submit',e=>{
+ if(e.target.id!=='addSeller')return;e.preventDefault();let name=$('#sellerName').value.trim();
+ if(!name){showToast('Escribe un nombre');return;}
+ if(store.sellers.some(s=>s.name.toLocaleLowerCase('es')===name.toLocaleLowerCase('es'))){showToast('El vendedor ya existe. Puedes reactivarlo.');return;}
+ store.sellers.push({id:'v'+Date.now().toString(36)+Math.floor(Math.random()*10000).toString(36),name,active:true});save();render();showToast('Vendedor agregado');
+});
+render();
+// Persistir automáticamente la migración si este navegador permite almacenamiento local.
+try{localStorage.setItem(STORAGE,JSON.stringify(store));}catch{}
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', {scope: './'}).catch(err => {
+      console.warn('Nun’z: no se pudo habilitar el modo sin conexión', err);
+    });
+  });
+}
+</script>
+</body></html>
