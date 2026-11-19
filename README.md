@@ -1,3 +1,12 @@
+## v15 — Ranking e histórico adaptados a móvil
+
+- Ranking mensual y anual, ordenado por cumplimiento, con porcentaje y ventas en Q visibles a la vez en pantalla y PNG.
+- Histórico mensual y anual con Barras como vista inicial y porcentaje conseguido sobre cada barra. El eje porcentual avanza de 25% en 25%; la línea discontinua de meta al 100% se dibuja por encima de las barras.
+- En móvil, el gráfico se divide en grupos de hasta seis períodos para conservar etiquetas legibles. La tabla presenta una ficha compacta por período con ventas, objetivo y cumplimiento, sin desplazamiento horizontal.
+- Descargar PNG y Compartir usan iconos con etiquetas accesibles en ranking e histórico, incluidas las vistas de líneas y tabla.
+- El registro semanal sigue disponible; al terminar regresa al ranking mensual. Se conservan el almacenamiento, los datos y la sincronización existentes.
+- Se renueva la versión del caché de la PWA para cargar la interfaz actualizada.
+
 ## v14 — Laureles aprobados
 
 Actualización visual exclusivamente: los laureles de los primeros tres puestos y la corona del primero se reproducen con los mismos vectores aprobados en `nunz_laureles_estudio.html`, extraídos del concepto `1000106242.jpg`. Se dibujan con la misma función en pantalla y exportación PNG.

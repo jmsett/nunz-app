@@ -324,6 +324,47 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .admin-danger summary{cursor:pointer;list-style-position:inside}
 .admin-danger .btn{margin-top:9px}
 @media(max-width:760px){.sync-footer{margin:16px 0 0;justify-content:center}.admin-details>summary{padding:13px 14px}.admin-content{padding:0 10px 10px}.admin-content>.panel{padding:13px}}
+
+/* Ranking con ambas métricas y controles de exportación accesibles. */
+.viewhead .iconbtn{width:44px;height:44px;min-height:44px;padding:10px;flex:none}
+.iconbtn svg{width:22px;height:22px;flex:none}
+.rank-actions{justify-content:flex-end}
+.rankitem .rankmetric{display:flex;flex-direction:column;gap:3px;min-width:0;line-height:1.2;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.rankitem .rankpercent{font-size:26px}
+.rankitem .rankamount{font-size:14px;font-weight:650;color:#53708e;white-space:normal;overflow-wrap:anywhere}
+.rankitem.other .rankpercent{font-size:18px}
+.rankitem.other .rankamount{font-size:14px}
+.rankitem.other{grid-template-columns:40px 154px minmax(54px,1fr) minmax(100px,auto)}
+.chart-range{margin:7px 0 0;text-align:center;font-size:14px;font-weight:700;color:var(--deep)}
+.chartscroll+.chartscroll{margin-top:12px}
+@media(max-width:1000px){
+ .rankitem.other{grid-template-columns:36px 132px minmax(40px,1fr) minmax(95px,auto);column-gap:10px}
+}
+@media(max-width:760px){
+ .rankitem.top .rankheading{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+ .rankitem.top .rankmetric{flex-direction:row;align-items:baseline;justify-content:space-between;gap:8px;text-align:left;flex-wrap:wrap}
+ .rankitem.top .rankpercent{font-size:22px}
+ .rankitem.top .rankamount{font-size:14px}
+ .rankitem.top .rankname{font-size:18px}
+ .rankitem.other{grid-template-columns:32px minmax(0,1fr) minmax(90px,110px);gap:6px 9px;padding:10px 3px}
+ .rankitem.other .ranknum{grid-column:1;grid-row:1 / 3}
+ .rankitem.other .rankname{grid-column:2;grid-row:1;font-size:14px}
+ .rankitem.other .bar{grid-column:2;grid-row:2;align-self:start;margin-top:3px}
+ .rankitem.other .rankmetric{grid-column:3;grid-row:1 / 3}
+ .rankitem.other .rankpercent{font-size:18px}
+}
+@media(max-width:1000px){
+ .historytable{display:block;min-width:0;white-space:normal;font-size:14px}
+ .historytable thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ .historytable tbody{display:block}
+ .historytable tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;padding:12px;border-bottom:1px solid var(--line)}
+ .historytable tbody tr:last-child{border-bottom:0}
+ .historytable tbody th,.historytable tbody td{display:block;min-width:0;padding:0;border:0;text-align:left;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+ .historytable tbody th{grid-column:1;grid-row:1;align-self:center;font-size:16px}
+ .historytable td[data-label="Cumplimiento"]{grid-column:2;grid-row:1;text-align:right;font-weight:750}
+ .historytable td::before{content:attr(data-label);display:block;font-size:12px;font-weight:600;color:#667b99;margin-bottom:2px}
+ .tablewrap{max-height:none;overflow:visible}
+}
 </style>
 <link rel="manifest" href="./manifest.webmanifest"/>
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png"/>
@@ -496,7 +537,7 @@ try{store=JSON.parse(localStorage.getItem(STORAGE)||localStorage.getItem(LEGACY_
 if(!store||!Array.isArray(store.sellers)||typeof store.records!=='object')store={sellers:[],records:{},weeks:{},monthlyGoals:{},weekDrafts:{},drafts:{},demo:false,weeklySchema:'weekly-delta-four-v3',autoBackupOnWeek:true};
 store=migrateStore(store);
 let ui={page:(store.sellers.length?'ranking':'team'),year:today.getFullYear(),month:today.getMonth()+1,week:Math.min(4,Math.ceil(today.getDate()/7)),
-  rankPeriod:'month',mode:'percent',chartPeriod:'monthly',chartStyle:'points',historyMonth:'all',filter:'all',entryIds:[],entryIndex:0,editSellerId:null,deleteSellerId:null,adminExpanded:false};
+  rankPeriod:'month',mode:'percent',chartPeriod:'monthly',chartStyle:'bars',filter:'all',entryIds:[],entryIndex:0,editSellerId:null,deleteSellerId:null,adminExpanded:false};
 // The demo shows November 2026 by default; real installations start in the current month.
 if(store.demo){ui.year=2026;ui.month=11;ui.week=3;}
 let toastTimer;
@@ -547,19 +588,6 @@ function monthIds(y,m){
   return [...ids].filter(id=>seller(id));
 }
 function hasWeeklyMonth(y,m){return monthIds(y,m).length>0;}
-function weekRows(y,m,w){
-  // Vista histórica: ventas individuales realizadas DURANTE la semana.
-  const ids=monthIds(y,m);
-  if(!Object.keys(store.weeks[weekKey(y,m,w)]||{}).some(id=>ids.includes(id)))return [];
-  return ids.map(id=>({id,name:seller(id).name,goal:(goalFor(id,y,m)||0)/4,sales:weekSales(id,y,m,w)??0}))
-    .filter(r=>r.goal>0).map(r=>({...r,percent:100*r.sales/r.goal}));
-}
-function weekRankingRows(y,m,w){
-  // Vista de ranking: SUMA hasta la semana seleccionada / meta MENSUAL completa.
-  return monthIds(y,m).filter(id=>cumulativeThrough(id,y,m,w)!==null)
-    .map(id=>({id,name:seller(id).name,goal:goalFor(id,y,m),sales:cumulativeThrough(id,y,m,w)}))
-    .filter(r=>r.goal>0).map(r=>({...r,percent:100*r.sales/r.goal}));
-}
 function monthRows(y,m){
   if(hasWeeklyMonth(y,m))return monthIds(y,m).map(id=>({id,name:seller(id).name,goal:goalFor(id,y,m),sales:cumulativeThrough(id,y,m,weekCount(y,m))}))
     .filter(r=>r.goal>0).map(r=>({...r,percent:100*r.sales/r.goal}));
@@ -571,18 +599,20 @@ function annualRows(y){
   // No inventamos objetivos de meses futuros que todavía no se han registrado.
   return sumBySeller(MONTHS.flatMap((_,i)=>monthRows(y,i+1)));
 }
-function rangeRows(y,m){return ui.rankPeriod==='annual'?annualRows(y):ui.rankPeriod==='week'?weekRankingRows(y,m,ui.week):monthRows(y,m);}
+function rangeRows(y,m){return ui.rankPeriod==='annual'?annualRows(y):monthRows(y,m);}
 function filterRows(rows){return ui.filter==='all'?rows:rows.filter(r=>r.id===ui.filter);}
 const icon=(name)=>({
  trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4h10v7a5 5 0 0 1-10 0V4ZM7 6H4v2a4 4 0 0 0 4 4M17 6h3v2a4 4 0 0 1-4 4M12 16v4M7 21h10"/></svg>',
  chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 19h18M4 15l5-5 4 3 6-8"/><circle cx="4" cy="15" r="1.5"/><circle cx="9" cy="10" r="1.5"/><circle cx="13" cy="13" r="1.5"/><circle cx="19" cy="5" r="1.5"/></svg>',
  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
+ download:'<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg>',
+ share:'<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4m-6.8 7 6.8 4"/></svg>',
  users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6m1 4a5 5 0 0 1 4 5"/></svg>'
 })[name];
 function nav(){const data=[['ranking','trophy','Ranking de ventas'],['history','chart','Progreso histórico'],['entry','edit','Registrar ventas'],['team','users','Equipo de ventas']];$('#nav').innerHTML=data.map(([id,i,label])=>`<button class="navbtn ${ui.page===id?'active':''}" data-page="${id}" aria-current="${ui.page===id?'page':'false'}" ${id==='entry'&&isReadOnly()?'disabled title="Solo disponible en modo registro"':''}>${icon(i)}<span>${label}</span></button>`).join('');}
 function title(t,sub){$('#pageHeader').innerHTML=`<div><div class="kicker">NUN’Z · DESEMPEÑO COMERCIAL</div><h1>${esc(t)}</h1><p>${esc(sub)}</p></div>${store.demo?'<span class="demo">Datos ficticios</span>':''}`;}
 function yearSelect(){const years=[...new Set([...Object.keys(store.records||{}),...Object.keys(store.weeks||{})].map(k=>Number(k.slice(0,4))).filter(Number.isFinite)),ui.year];for(let y=Math.min(ui.year-1,2024);y<=Math.max(ui.year+2,new Date().getFullYear()+1);y++)years.push(y);return `<div class="field"><label for="year">Año</label><select id="year">${[...new Set(years)].sort((a,b)=>b-a).map(y=>`<option value="${y}" ${ui.year===y?'selected':''}>${y}</option>`).join('')}</select></div>`;}
-function monthSelect(which='month',all=false){const value=which==='historyMonth'?ui.historyMonth:String(ui.month);return `<div class="field"><label for="${which}">Mes</label><select id="${which}">${all?`<option value="all" ${value==='all'?'selected':''}>Todo el año</option>`:''}${MONTHS.map((m,i)=>`<option value="${i+1}" ${String(value)===String(i+1)?'selected':''}>${m}</option>`).join('')}</select></div>`;}
+function monthSelect(){return `<div class="field"><label for="month">Mes</label><select id="month">${MONTHS.map((m,i)=>`<option value="${i+1}" ${ui.month===i+1?'selected':''}>${m}</option>`).join('')}</select></div>`;}
 function weekSelect(){ui.week=Math.min(ui.week,weekCount(ui.year,ui.month));return `<div class="field"><label for="week">Semana</label><select id="week">${Array.from({length:weekCount(ui.year,ui.month)},(_,i)=>{let w=i+1;return `<option value="${w}" ${ui.week===w?'selected':''}>S${w} · ${dateRange(ui.year,ui.month,w).split(' de ')[0]}</option>`}).join('')}</select></div>`;}
 function seg(prop,opts){return `<div class="seg" role="group">${opts.map(([v,t])=>`<button type="button" class="${ui[prop]===v?'selected':''}" data-set="${prop}" data-value="${v}" aria-pressed="${ui[prop]===v}">${t}</button>`).join('')}</div>`;}
 function stats(items){return `<div class="stats">${items.map(([label,value,accent])=>`<div class="stat"><span class="lab">${esc(label)}</span><span class="value ${accent?'lit':''}">${esc(value)}</span></div>`).join('')}</div>`;}
@@ -606,47 +636,44 @@ function laurels(rank){
   </g>`;
 }
 function award(rank){return `<svg class="award" viewBox="0 -16 100 121" aria-label="Puesto ${rank}">${laurels(rank)}</svg>`;}
+function exportActions(kind){
+  return `<div class="footeract"><button type="button" class="btn secondary iconbtn" data-action="export${kind}" aria-label="Descargar PNG" title="Descargar PNG">${icon('download')}</button><button type="button" class="btn iconbtn" data-action="share${kind}" aria-label="Compartir" title="Compartir">${icon('share')}</button></div>`;
+}
 function ranking(){
   title('Ranking de ventas',ui.rankPeriod==='annual'?'Cumplimiento de objetivos de los meses registrados del año':'Avance acumulado frente al objetivo mensual');
-  const rows=rangeRows(ui.year,ui.month).sort((a,b)=>ui.mode==='percent'?(b.percent-a.percent||b.sales-a.sales):(b.sales-a.sales||b.percent-a.percent));
+  const rows=rangeRows(ui.year,ui.month).sort((a,b)=>b.percent-a.percent||b.sales-a.sales);
   const team=aggregate(rows),teamPct=team.goal?team.sales/team.goal*100:0;
-  const titlePeriod=ui.rankPeriod==='annual'?`Año ${ui.year}`:ui.rankPeriod==='week'?`Semana ${ui.week} · ${MONTHS[ui.month-1]} ${ui.year}`:`${MONTHS[ui.month-1]} ${ui.year}`;
-  const value=r=>ui.mode==='percent'?pct(r.percent):money(r.sales);
-  const topSale=Math.max(1,...rows.map(r=>r.sales));
+  const titlePeriod=ui.rankPeriod==='annual'?`Año ${ui.year}`:`${MONTHS[ui.month-1]} ${ui.year}`;
+  const value=r=>`<span class="rankpercent">${pct(r.percent)}</span><span class="rankamount">${money(r.sales)}</span>`;
   const list=rows.map((r,i)=>{
     const top=i<3;
     if(top)return `<div class="rankitem top ${i===0?'first':''}">${award(i+1)}<div class="rankdetails"><div class="rankheading"><div class="rankname">${esc(r.name)}</div><div class="rankmetric">${value(r)}</div></div>${progress(r.percent)}</div></div>`;
     return `<div class="rankitem other"><div class="ranknum">${i+1}</div><div class="rankname">${esc(r.name)}</div>${progress(r.percent)}<div class="rankmetric">${value(r)}</div></div>`;
   }).join('');
-  let metricCards=ui.mode==='percent'?[['Cumplimiento del equipo',pct(teamPct),true],['Vendedores evaluados',String(rows.length)],['Superaron la meta',String(rows.filter(r=>r.percent>100).length)]]:[['Ventas del equipo',money(team.sales)],['Vendedores evaluados',String(rows.length)],['Venta más alta',money(topSale===1?0:topSale)]];
-  $('#content').innerHTML=`<section class="panel"><div class="controlrow rank-filters">${yearSelect()}${ui.rankPeriod==='annual'?'':monthSelect()}<div class="field report-field"><label for="rankPeriod">Informe</label><select id="rankPeriod"><option value="week" ${ui.rankPeriod==='week'?'selected':''}>Semanal</option><option value="month" ${ui.rankPeriod==='month'?'selected':''}>Mensual</option><option value="annual" ${ui.rankPeriod==='annual'?'selected':''}>Anual</option></select></div>${ui.rankPeriod==='week'?weekSelect():''}</div><div class="sectionlead"><h2>Ranking de Ventas</h2><span class="periodpill">${esc(titlePeriod)}</span><p>${ui.rankPeriod==='annual'?'Objetivos cumplidos durante el año · meses registrados':ui.mode==='percent'?(ui.rankPeriod==='week'?'Acumulado frente a la meta mensual':'Cumplimiento de metas del equipo'):(ui.rankPeriod==='week'?'Ventas acumuladas del mes':'Ventas realizadas del equipo')}</p></div><div class="viewhead"><div class="switchgroup"><span>Visualizar</span>${seg('mode',[['percent','% Cumplimiento'],['amount','Valor total (Q)']])}</div><div class="footeract"><button class="btn secondary" data-action="exportRank">↓ Descargar PNG</button><button class="btn" data-action="shareRank">Compartir</button></div></div>${rows.length?`${stats(metricCards)}<div class="ranklist">${list}</div><div class="footerquote">¡Sigamos avanzando!</div><div class="footercurve"></div><p class="hint">${ui.rankPeriod==='annual'?'El cumplimiento anual considera las ventas y metas de los meses que tienen reportes, sin contar dos veces un objetivo mensual. Los meses aún sin reporte no se incluyen en el porcentaje.':ui.mode==='percent'?'Cada semana compara el acumulado con la meta mensual completa. El amarillo cubre el excedente superior al 100% desde la derecha hacia la izquierda.':'Las cifras se muestran en Q; las barras siempre representan el cumplimiento respecto al objetivo de cada vendedor. El amarillo destaca lo que supera el 100%.'}</p>`:`<div class="empty"><strong>Aún no hay datos para ${esc(titlePeriod)}.</strong>Registra las ventas semanales para generar el ranking.<p><button class="btn" data-page="entry">Registrar ventas</button></p></div>`}</section>`;
+  const metricCards=[['Cumplimiento del equipo',pct(teamPct),true],['Ventas del equipo',money(team.sales)],['Vendedores evaluados',String(rows.length)]];
+  $('#content').innerHTML=`<section class="panel"><div class="controlrow rank-filters">${yearSelect()}${ui.rankPeriod==='annual'?'':monthSelect()}<div class="field report-field"><label for="rankPeriod">Informe</label><select id="rankPeriod"><option value="month" ${ui.rankPeriod==='month'?'selected':''}>Mensual</option><option value="annual" ${ui.rankPeriod==='annual'?'selected':''}>Anual</option></select></div></div><div class="sectionlead"><h2>Ranking de Ventas</h2><span class="periodpill">${esc(titlePeriod)}</span><p>${ui.rankPeriod==='annual'?'Cumplimiento y ventas del año · meses registrados':'Cumplimiento y ventas del equipo'}</p></div><div class="viewhead rank-actions">${exportActions('Rank')}</div>${rows.length?`${stats(metricCards)}<div class="ranklist">${list}</div><div class="footerquote">¡Sigamos avanzando!</div><div class="footercurve"></div><p class="hint">Ordenado por porcentaje de cumplimiento. ${ui.rankPeriod==='annual'?'El cumplimiento anual considera las ventas y metas de los meses que tienen reportes, sin contar dos veces un objetivo mensual. Los meses aún sin reporte no se incluyen en el porcentaje.':'Las ventas acumulan todas las semanas registradas del mes frente a la meta mensual completa. El amarillo destaca lo que supera el 100%.'}</p>`:`<div class="empty"><strong>Aún no hay datos para ${esc(titlePeriod)}.</strong>Registra las ventas semanales para generar el ranking.<p><button class="btn" data-page="entry">Registrar ventas</button></p></div>`}</section>`;
 }
 function series(){
   const toPoint=(label,rows)=>{let a=aggregate(filterRows(rows));return {label,sales:a.sales,goal:a.goal,value:a.goal?(ui.mode==='percent'?100*a.sales/a.goal:a.sales):null};};
-  if(ui.chartPeriod==='weekly'){
-    let months=ui.historyMonth==='all'?Array.from({length:12},(_,i)=>i+1):[Number(ui.historyMonth)];
-    return months.flatMap(m=>Array.from({length:weekCount(ui.year,m)},(_,i)=>{
-      let w=i+1;let r=weekRows(ui.year,m,w);
-      return {...toPoint(ui.historyMonth==='all'?`${MONTHS[m-1].slice(0,3)} S${w}`:`S${w}`,r),subtitle:dateRange(ui.year,m,w)};
-    }));
-  }
   if(ui.chartPeriod==='monthly')return MONTHS.map((m,i)=>toPoint(m.slice(0,3),monthRows(ui.year,i+1)));
   const yearSet=[...new Set([...Object.keys(store.records),...Object.keys(store.weeks)].map(k=>Number(k.slice(0,4))).filter(Number.isFinite))].sort((a,b)=>a-b);
   return yearSet.map(y=>toPoint(String(y),Array.from({length:12},(_,i)=>monthRows(y,i+1)).flat()));
 }
-function chartSVG(points,w=950,h=420,poster=false){
-  const pad={left:85,right:29,top:33,bottom:63},plotW=w-pad.left-pad.right,plotH=h-pad.top-pad.bottom;
-  const seriesVals=points.flatMap(p=>ui.mode==='amount'?[p.sales,p.goal]:[p.value]).filter(v=>v!==null&&Number.isFinite(v));
+function chartSVG(points,w=950,h=420,scalePoints=points){
+  const compact=w<600,fontSize=compact?12:16;
+  const pad={left:compact?(ui.mode==='percent'?48:62):85,right:compact?16:29,top:33,bottom:63},plotW=w-pad.left-pad.right,plotH=h-pad.top-pad.bottom;
+  const seriesVals=scalePoints.filter(p=>p.value!==null).flatMap(p=>ui.mode==='amount'?[p.sales,p.goal]:[p.value]).filter(v=>v!==null&&Number.isFinite(v));
   if(!seriesVals.length)return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img"><rect width="100%" height="100%" fill="#fff"/><text x="${w/2}" y="${h/2}" text-anchor="middle" font-size="20" fill="#6c7e93">No hay datos para esta selección</text></svg>`;
-  const minV=ui.mode==='percent'?Math.min(0,...seriesVals):Math.min(0,...seriesVals);
-  let maxV=ui.mode==='percent'?Math.max(100,Math.ceil((Math.max(...seriesVals)+8)/10)*10):Math.max(1,Math.max(...seriesVals)*1.13);
+  const minV=ui.mode==='percent'?Math.floor(Math.min(0,...seriesVals)/25)*25:Math.min(0,...seriesVals);
+  let maxV=ui.mode==='percent'?Math.max(100,Math.ceil((Math.max(...seriesVals)+8)/25)*25):Math.max(1,Math.max(...seriesVals)*1.13);
   if(maxV<=minV)maxV=minV+10;
   const x=i=>ui.chartStyle==='bars'?pad.left+(i+.5)*plotW/Math.max(1,points.length):pad.left+(points.length===1?.5:i/(points.length-1))*plotW;
   const y=v=>pad.top+plotH-(v-minV)/(maxV-minV)*plotH;
-  let grid='';for(let i=0;i<=5;i++){
-    const v=minV+(maxV-minV)*i/5,yy=y(v);
+  const tickCount=ui.mode==='percent'?(maxV-minV)/25:5;
+  let grid='';for(let i=0;i<=tickCount;i++){
+    const v=ui.mode==='percent'?minV+i*25:minV+(maxV-minV)*i/5,yy=y(v);
     const label=ui.mode==='percent'?`${Math.round(v)}%`:moneyCompact(v);
-    grid+=`<line x1="${pad.left}" y1="${yy}" x2="${w-pad.right}" y2="${yy}" stroke="#e5edf5"/><text x="${pad.left-12}" y="${yy+5}" text-anchor="end" font-size="${points.length>15?11:13}" fill="#657890">${label}</text>`;
+    grid+=`<line x1="${pad.left}" y1="${yy}" x2="${w-pad.right}" y2="${yy}" stroke="#e5edf5"/><text x="${pad.left-12}" y="${yy+5}" text-anchor="end" font-size="${fontSize}" fill="#657890">${label}</text>`;
   }
   const lines=[],dots=[];
   const drawLine=(key,color,labelsOn,highlight=false)=>{
@@ -671,30 +698,32 @@ function chartSVG(points,w=950,h=420,poster=false){
       plots+=`<rect x="${left}" y="${baseY}" width="${barW}" height="${Math.max(1,Math.abs(bottomY-baseY))}" rx="${Math.min(5,barW/3)}" fill="#0875c5"><title>${esc(p.label)} ventas: ${ui.mode==='percent'?pct(a):money(a)}</title></rect>`;
       if(dual){let targetY=y(Math.max(0,p.goal));plots+=`<rect x="${left+barW+4}" y="${targetY}" width="${barW}" height="${Math.max(1,Math.abs(y(0)-targetY))}" rx="${Math.min(5,barW/3)}" fill="#d8e600"><title>${esc(p.label)} meta: ${money(p.goal)}</title></rect>`;}
       else if(a>100){const upper=y(a),lower=y(100);plots+=`<rect x="${left}" y="${upper}" width="${barW}" height="${Math.max(0,lower-upper)}" rx="4" fill="#dce600"/>`;}
+      const achieved=100*p.sales/p.goal,labelY=y(dual?Math.max(a,p.goal):a)-9;
+      plots+=`<text class="bar-label" x="${x(i)}" y="${labelY}" text-anchor="middle" font-size="${fontSize}" font-weight="750" fill="#123e76">${pct(achieved)}</text>`;
     });
   }else{
     drawLine(ui.mode==='percent'?'value':'sales','#0875c5',true,ui.mode==='percent');
     if(ui.mode==='amount')drawLine('goal','#d0dc00',false);
     plots=lines.join('')+dots.join('');
   }
-  let goalLine=ui.mode==='percent'&&minV<=100&&maxV>=100?`<line x1="${pad.left}" y1="${y(100)}" x2="${w-pad.right}" y2="${y(100)}" stroke="#8896a7" stroke-width="1.8" stroke-dasharray="7 5"/>`:'';
+  let goalLine=ui.mode==='percent'&&minV<=100&&maxV>=100?`<line x1="${pad.left}" y1="${y(100)}" x2="${w-pad.right}" y2="${y(100)}" class="goal-line" stroke="#66788e" stroke-width="2" stroke-dasharray="7 5"/>`:'';
   const step=points.length>40?5:points.length>25?3:points.length>14?2:1;
-  const labels=points.map((p,i)=>i%step===0||i===points.length-1?`<text x="${x(i)}" y="${h-30}" text-anchor="middle" font-size="${points.length>20?10:13}" fill="#586b85">${esc(p.label)}</text>`:'').join('');
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Ventas del período y objetivo mensual o anual"><rect width="${w}" height="${h}" fill="#fff"/>${grid}${goalLine}${plots}${labels}<text x="${w/2}" y="${h-5}" text-anchor="middle" font-size="12" fill="#8190a3">${ui.chartPeriod==='weekly'?'Semanas':ui.chartPeriod==='monthly'?'Meses':'Años'} · ${ui.mode==='percent'?'Ventas del período / meta (%)':'Ventas y objetivos (Q)'}</text></svg>`;
+  const labels=points.map((p,i)=>i%step===0||i===points.length-1?`<text x="${x(i)}" y="${h-30}" text-anchor="middle" font-size="${fontSize}" fill="#586b85">${esc(p.label)}</text>`:'').join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Ventas del período y objetivo mensual o anual"><rect width="${w}" height="${h}" fill="#fff"/>${grid}${plots}${goalLine}${labels}<text x="${w/2}" y="${h-5}" text-anchor="middle" font-size="12" fill="#8190a3">${ui.chartPeriod==='monthly'?'Meses':'Años'} · ${ui.mode==='percent'?'Ventas del período / meta (%)':'Ventas y objetivos (Q)'}</text></svg>`;
 }
 function moneyCompact(v){return v>=1e6?`Q${(v/1e6).toFixed(1)}M`:v>=1000?`Q${Math.round(v/1000)}k`:money(v);}
 function historyTable(points){
   const rows=points.map(p=>{
     const valid=p.value!==null&&p.goal>0;
     const percent=valid?100*p.sales/p.goal:null;
-    return `<tr><th scope="row">${esc(p.label)}</th><td>${valid?money(p.sales):'—'}</td><td>${valid?money(p.goal):'—'}</td><td class="${percent!==null&&percent>=100?'overgoal':''}">${valid?pct(percent):'—'}</td></tr>`;
+    return `<tr><th scope="row">${esc(p.label)}</th><td data-label="Ventas">${valid?money(p.sales):'—'}</td><td data-label="Objetivo">${valid?money(p.goal):'—'}</td><td data-label="Cumplimiento" class="${percent!==null&&percent>=100?'overgoal':''}">${valid?pct(percent):'—'}</td></tr>`;
   }).join('');
   return `<div class="tablewrap"><table class="historytable"><thead><tr><th>Período</th><th>Ventas (Q)</th><th>Objetivo (Q)</th><th>Cumplimiento</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function tablePoster(){
   const pts=series(),list=pts,step=46,h=410+list.length*step+140;
   const name=ui.filter==='all'?'Todo el equipo':seller(ui.filter)?.name||'Vendedor';
-  const subtitle=ui.chartPeriod==='weekly'?`Semanal ${ui.year}`:ui.chartPeriod==='monthly'?`Mensual ${ui.year}`:'Anual';
+  const subtitle=ui.chartPeriod==='monthly'?`Mensual ${ui.year}`:'Anual';
   let out=`<rect x="40" y="340" width="1000" height="48" rx="10" fill="#eaf3fc"/>`;
   const titles=[['Período',70],['Ventas (Q)',350],['Objetivo (Q)',650],['Cumplimiento',1010]];
   for(const [label,x] of titles)out+=`<text x="${x}" y="371" text-anchor="${x===1010?'end':'start'}" fill="#063e83" font-size="23" font-weight="800">${esc(label)}</text>`;
@@ -706,16 +735,19 @@ function tablePoster(){
   });
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}" font-family="Arial,sans-serif"><rect width="1080" height="${h}" fill="#fff"/><text x="540" y="196" text-anchor="middle" font-size="48" font-weight="850" fill="#073f83">Progreso Histórico de Ventas</text><text x="540" y="260" text-anchor="middle" fill="#71829b" font-size="27">${esc(subtitle)} · ${esc(name)} · Tabla</text>${out}<rect x="0" y="${h-12}" width="1080" height="12" fill="#dce600"/></svg>`;
 }
+function historyCharts(points){
+  const compact=window.matchMedia('(max-width:760px)').matches;
+  if(!compact)return `<div class="chartscroll">${chartSVG(points,950,420)}</div>`;
+  const width=Math.max(240,$('#content').clientWidth-34),chunks=[];
+  for(let i=0;i<points.length;i+=6)chunks.push(points.slice(i,i+6));
+  if(!chunks.length)chunks.push([]);
+  return chunks.map(chunk=>`<div class="chartscroll">${chunks.length>1?`<p class="chart-range">${esc(chunk[0].label)} – ${esc(chunk[chunk.length-1].label)}</p>`:''}${chartSVG(chunk,width,290,points)}</div>`).join('');
+}
 function history(){
   title('Progreso histórico de ventas','Cumplimiento de metas y evolución comercial');
-  const pts=series();
-  const summaryRows=ui.chartPeriod==='weekly'
-    ? (ui.historyMonth==='all'?Array.from({length:12},(_,i)=>monthRows(ui.year,i+1)).flat():monthRows(ui.year,Number(ui.historyMonth)))
-    : pts.filter(p=>p.goal>0);
-  const a=aggregate(ui.chartPeriod==='weekly'?filterRows(summaryRows):summaryRows),ratio=a.goal?100*a.sales/a.goal:0;
-  let label=ui.chartPeriod==='annual'?'Comparación año por año':ui.chartPeriod==='monthly'?`Evolución mensual · ${ui.year}`:`Evolución semanal · ${ui.year}${ui.historyMonth==='all'?'':' · '+MONTHS[Number(ui.historyMonth)-1]}`;
-  const width=ui.chartPeriod==='weekly'&&ui.historyMonth==='all'?2100:950;
-  $('#content').innerHTML=`<section class="panel"><div class="sectionlead compact"><h2>Progreso Histórico de Ventas</h2><p>Cumplimiento de metas</p></div><div class="chartcontrols"><div class="controlrow chart-filterbar">${ui.chartPeriod!=='annual'?yearSelect():''}${ui.chartPeriod==='weekly'?monthSelect('historyMonth',true):''}<div class="field grow"><label for="sellerFilter">Vendedor</label><select id="sellerFilter"><option value="all">Todo el equipo</option>${store.sellers.map(s=>`<option value="${s.id}" ${ui.filter===s.id?'selected':''}>${esc(s.name)}${s.active?'':' (archivado)'}</option>`).join('')}</select></div></div><div class="controls chart-options"><div class="switchgroup"><span>Período</span>${seg('chartPeriod',[['weekly','Semanal'],['monthly','Mensual'],['annual','Anual']])}</div><div class="switchgroup"><span>Gráfico</span>${seg('chartStyle',[['points','Puntos + línea'],['bars','Barras'],['table','Tabla']])}</div><div class="switchgroup"><span>Mostrar</span>${seg('mode',[['percent','% Cumplimiento'],['amount','Valor total (Q)']])}</div></div></div>${stats([['Ventas del período',money(a.sales)],['Objetivo del período',money(a.goal)],['Cumplimiento',pct(ratio),true]])}<div class="viewhead"><h2>${esc(label)}</h2><div class="footeract"><button class="btn secondary" data-action="exportChart">↓ Descargar PNG</button><button class="btn" data-action="shareChart">Compartir</button></div></div><div class="chartbox">${ui.chartStyle==='table'?historyTable(pts):`<div class="chartscroll ${width>1000?'wide':''}">${chartSVG(pts,width,420)}</div>`}<div class="chartlegend" style="${ui.chartStyle==='table'?'display:none;':''}"><span><i class="${ui.chartStyle==='bars'?'legendbar':'legendline'}"></i> ${ui.mode==='percent'?'Cumplimiento':'Ventas'}</span>${ui.mode==='percent'?'<span><i class="legendgoal"></i> Meta 100%</span><span><i class="legendlime"></i> Sobre meta</span>':'<span><i class="legendlime"></i> Objetivo del período (Q)</span>'}</div></div><p class="hint">Sin datos = período sin reporte. Aquí se muestran incrementos semanales (no acumulados). Los meses y años suman esas semanas; la meta mensual cuenta una sola vez. En la gráfica semanal, cada objetivo equivale a un cuarto de la meta mensual y el porcentaje se calcula contra ese cuarto. Los registros mensuales antiguos sin desglose sólo aparecen por mes o año. ${ui.chartPeriod==='weekly'?'Siempre se utilizan cuatro semanas por mes: 1–7, 8–14, 15–21 y 22–fin de mes.':''}</p></section>`;
+  const pts=series(),a=aggregate(pts.filter(p=>p.goal>0)),ratio=a.goal?100*a.sales/a.goal:0;
+  const label=ui.chartPeriod==='annual'?'Comparación año por año':`Evolución mensual · ${ui.year}`;
+  $('#content').innerHTML=`<section class="panel"><div class="sectionlead compact"><h2>Progreso Histórico de Ventas</h2><p>Cumplimiento de metas</p></div><div class="chartcontrols"><div class="controlrow chart-filterbar">${ui.chartPeriod!=='annual'?yearSelect():''}<div class="field grow"><label for="sellerFilter">Vendedor</label><select id="sellerFilter"><option value="all">Todo el equipo</option>${store.sellers.map(s=>`<option value="${s.id}" ${ui.filter===s.id?'selected':''}>${esc(s.name)}${s.active?'':' (archivado)'}</option>`).join('')}</select></div></div><div class="controls chart-options"><div class="switchgroup"><span>Período</span>${seg('chartPeriod',[['monthly','Mensual'],['annual','Anual']])}</div><div class="switchgroup"><span>Gráfico</span>${seg('chartStyle',[['bars','Barras'],['points','Puntos + línea'],['table','Tabla']])}</div><div class="switchgroup"><span>Mostrar</span>${seg('mode',[['percent','% Cumplimiento'],['amount','Valor total (Q)']])}</div></div></div>${stats([['Ventas del período',money(a.sales)],['Objetivo del período',money(a.goal)],['Cumplimiento',pct(ratio),true]])}<div class="viewhead"><h2>${esc(label)}</h2>${exportActions('Chart')}</div><div class="chartbox">${ui.chartStyle==='table'?historyTable(pts):historyCharts(pts)}<div class="chartlegend" style="${ui.chartStyle==='table'?'display:none;':''}"><span><i class="${ui.chartStyle==='bars'?'legendbar':'legendline'}"></i> ${ui.mode==='percent'?'Cumplimiento':'Ventas'}</span>${ui.mode==='percent'?'<span><i class="legendgoal"></i> Meta 100%</span><span><i class="legendlime"></i> Sobre meta</span>':'<span><i class="legendlime"></i> Objetivo del período (Q)</span>'}</div></div><p class="hint">Sin datos = período sin reporte. Los meses y años suman las ventas semanales; la meta mensual cuenta una sola vez. También se incluyen los registros mensuales antiguos sin desglose semanal. ${ui.chartStyle==='bars'?'El porcentaje sobre cada barra indica el cumplimiento del objetivo del período.':''}</p></section>`;
 }
 function sellerRowHTML(s){
   const readonly=isReadOnly();
@@ -869,7 +901,7 @@ function nextEntry(){if(!requireEditor() || !captureEntry())return;
   delete store.weekDrafts[k];store.weeklySchema='weekly-delta-four-v3';store.lastUpdateDate=localDateISO(new Date());if(!save())return;
   if(store.autoBackupOnWeek!==false && !(cloud&&cloud.cfg.initialized))backup(true);
   if(cloud&&cloud.cfg.initialized)cloud.schedule(50);
-  ui.rankPeriod='week';ui.page='ranking';render();showToast(cloud&&cloud.cfg.initialized?'✓ Semana guardada. Se sincronizará con GitHub al tener conexión.':store.autoBackupOnWeek!==false?'✓ Semana completada. Comprueba el respaldo JSON en Descargas.':'✓ Semana completada. Puedes descargar el respaldo desde el ranking.');
+  ui.rankPeriod='month';ui.page='ranking';render();showToast(cloud&&cloud.cfg.initialized?'✓ Semana guardada. Se sincronizará con GitHub al tener conexión.':store.autoBackupOnWeek!==false?'✓ Semana completada. Comprueba el respaldo JSON en Descargas.':'✓ Semana completada. Puedes descargar el respaldo desde el ranking.');
 }
 function prevEntry(){if(ui.entryIndex>0){draftEntry();ui.entryIndex--;entry()}}
 function enableSwipe(){
@@ -888,26 +920,26 @@ function svgBar(x,y,w,percent){
 }
 function mark(h){return store.demo?`<text x="1030" y="${h-25}" text-anchor="end" font-size="16" fill="#8190a4">EJEMPLO · DATOS FICTICIOS</text>`:'';}
 function rankPoster(){
-  const rows=rangeRows(ui.year,ui.month).sort((a,b)=>ui.mode==='percent'?b.percent-a.percent:b.sales-a.sales);
+  const rows=rangeRows(ui.year,ui.month).sort((a,b)=>b.percent-a.percent||b.sales-a.sales);
   const total=rows.length,bodyH=rows.reduce((a,r,i)=>a+(i<3?154:79),0)+(total?13*(total-1):0);
-  const h=430+bodyH+135,yStart=362,topAmount=Math.max(1,...rows.map(r=>r.sales));
+  const h=430+bodyH+135,yStart=362;
   let y=yStart,body='';
   rows.forEach((r,i)=>{
     const top=i<3,hh=top?154:79;
-    const v=ui.mode==='percent'?pct(r.percent):money(r.sales);
+    const v=pct(r.percent),amount=money(r.sales);
     body+=`<rect x="39" y="${y}" width="1002" height="${hh}" rx="${top?26:9}" fill="#fff" stroke="${i===0?'#dce700':'#e6edf4'}" stroke-width="${i===0?'3':'1.5'}"/>`;
-    if(top){body+=`<g transform="translate(61 ${y+19}) scale(1.04)">${laurels(i+1)}</g><text x="175" y="${y+67}" font-size="${Math.min(36,r.name.length>21?28:35)}" font-weight="780" fill="#0d467f">${esc(r.name)}</text><text x="998" y="${y+67}" text-anchor="end" font-size="44" font-weight="820" fill="#0d467f">${esc(v)}</text>${svgBar(177,y+103,817,r.percent)}`;}
-    else{body+=`<rect x="56" y="${y+17}" width="45" height="45" rx="12" fill="#eaf3fa"/><text x="78.5" y="${y+49}" text-anchor="middle" font-size="25" font-weight="800" fill="#0d467f">${i+1}</text><text x="132" y="${y+48}" font-size="${r.name.length>18?19:24}" font-weight="680" fill="#254a75">${esc(r.name.length>19?r.name.slice(0,18)+'…':r.name)}</text><text x="1008" y="${y+49}" font-size="27" text-anchor="end" font-weight="780" fill="#0d467f">${esc(v)}</text>${svgBar(375,y+34,490,r.percent)}`;}
+    if(top){body+=`<g transform="translate(61 ${y+19}) scale(1.04)">${laurels(i+1)}</g><text x="175" y="${y+67}" font-size="${Math.min(36,r.name.length>21?28:35)}" font-weight="780" fill="#0d467f">${esc(r.name)}</text><text x="998" y="${y+67}" text-anchor="end" font-size="36" font-weight="820" fill="#0d467f">${esc(v)}</text><text x="998" y="${y+94}" text-anchor="end" font-size="23" font-weight="650" fill="#53708e">${esc(amount)}</text>${svgBar(177,y+103,817,r.percent)}`;}
+    else{body+=`<rect x="56" y="${y+17}" width="45" height="45" rx="12" fill="#eaf3fa"/><text x="78.5" y="${y+49}" text-anchor="middle" font-size="25" font-weight="800" fill="#0d467f">${i+1}</text><text x="132" y="${y+48}" font-size="${r.name.length>18?19:24}" font-weight="680" fill="#254a75">${esc(r.name.length>19?r.name.slice(0,18)+'…':r.name)}</text><text x="1008" y="${y+33}" font-size="25" text-anchor="end" font-weight="780" fill="#0d467f">${esc(v)}</text><text x="1008" y="${y+59}" font-size="20" text-anchor="end" font-weight="650" fill="#53708e">${esc(amount)}</text>${svgBar(375,y+34,430,r.percent)}`;}
     y+=hh+13;
   });
-  const date=ui.rankPeriod==='annual'?`Año ${ui.year}`:ui.rankPeriod==='week'?`Semana ${ui.week} · ${MONTHS[ui.month-1]} ${ui.year}`:`${MONTHS[ui.month-1]} ${ui.year}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}" font-family="Arial,sans-serif"><defs><filter id="softGlow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="1080" height="${h}" fill="#fff"/><rect x="0" y="${h-13}" width="1080" height="13" fill="#dfe900"/><text x="540" y="205" text-anchor="middle" font-size="64" font-weight="850" fill="#083f83">Ranking de Ventas</text><rect x="300" y="223" width="480" height="53" rx="27" fill="#e2eb00"/><text x="540" y="259" text-anchor="middle" font-size="30" fill="#064c91" font-weight="810">${esc(date)}</text><text x="540" y="318" text-anchor="middle" font-style="italic" font-size="28" fill="#73829a">${ui.rankPeriod==='annual'?(ui.mode==='percent'?'Cumplimiento sobre objetivos de meses reportados':'Ventas de meses reportados'):ui.mode==='percent'?(ui.rankPeriod==='week'?'Acumulado de ventas frente a la meta mensual':'Cumplimiento de metas del equipo'):(ui.rankPeriod==='week'?'Ventas acumuladas del mes':'Ventas realizadas del equipo')}</text>${body}<text x="540" y="${h-92}" text-anchor="middle" font-size="36" font-style="italic" font-weight="750" fill="#073f83">¡Sigamos avanzando!</text><path d="M390 ${h-73} Q540 ${h-90} 690 ${h-73}" fill="none" stroke="#dbe900" stroke-width="5"/>${mark(h)}</svg>`;
+  const date=ui.rankPeriod==='annual'?`Año ${ui.year}`:`${MONTHS[ui.month-1]} ${ui.year}`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}" font-family="Arial,sans-serif"><defs><filter id="softGlow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="1080" height="${h}" fill="#fff"/><rect x="0" y="${h-13}" width="1080" height="13" fill="#dfe900"/><text x="540" y="205" text-anchor="middle" font-size="64" font-weight="850" fill="#083f83">Ranking de Ventas</text><rect x="300" y="223" width="480" height="53" rx="27" fill="#e2eb00"/><text x="540" y="259" text-anchor="middle" font-size="30" fill="#064c91" font-weight="810">${esc(date)}</text><text x="540" y="318" text-anchor="middle" font-style="italic" font-size="28" fill="#73829a">${ui.rankPeriod==='annual'?'Cumplimiento y ventas de meses reportados':'Cumplimiento y ventas del equipo'}</text>${body}<text x="540" y="${h-92}" text-anchor="middle" font-size="36" font-style="italic" font-weight="750" fill="#073f83">¡Sigamos avanzando!</text><path d="M390 ${h-73} Q540 ${h-90} 690 ${h-73}" fill="none" stroke="#dbe900" stroke-width="5"/>${mark(h)}</svg>`;
 }
 function chartPoster(){
  if(ui.chartStyle==='table')return tablePoster();
- const pts=series(),width=1000,graph=chartSVG(pts,1000,470,true).replace(/<svg[^>]*>/,'<g transform="translate(40 310)">').replace(/<\/svg>$/,'</g>');
- const a=aggregate(ui.chartPeriod==='weekly'?filterRows(ui.historyMonth==='all'?Array.from({length:12},(_,i)=>monthRows(ui.year,i+1)).flat():monthRows(ui.year,Number(ui.historyMonth))):pts.filter(p=>p.goal>0));
- const detail=ui.chartPeriod==='weekly'?`Semanal ${ui.year} · ${ui.historyMonth==='all'?'Todo el año':MONTHS[Number(ui.historyMonth)-1]}`:ui.chartPeriod==='monthly'?`Mensual ${ui.year}`:'Comparación anual';
+ const pts=series(),graph=chartSVG(pts,1000,470).replace(/<svg[^>]*>/,'<g transform="translate(40 310)">').replace(/<\/svg>$/,'</g>');
+ const a=aggregate(pts.filter(p=>p.goal>0));
+ const detail=ui.chartPeriod==='monthly'?`Mensual ${ui.year}`:'Comparación anual';
  const name=ui.filter==='all'?'Todo el equipo':seller(ui.filter)?.name||'Vendedor';
  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="900" viewBox="0 0 1080 900" font-family="Arial,sans-serif"><rect width="1080" height="900" fill="white"/><rect width="1080" height="11" fill="#e1eb00"/><text x="540" y="180" font-size="49" text-anchor="middle" font-weight="850" fill="#073f83">Progreso Histórico de Ventas</text><text x="540" y="232" text-anchor="middle" fill="#74839a" font-size="25">${esc(detail)} · ${esc(name)}</text><text x="55" y="276" fill="#073f83" font-size="22" font-weight="700">${ui.mode==='percent'?'Cumplimiento':'Ventas'} · ${ui.chartStyle==='points'?'Puntos + línea':'Barras'}</text>${graph}<text x="540" y="833" fill="#073f83" text-anchor="middle" font-size="21">Ventas: ${money(a.sales)}  ·  Meta: ${money(a.goal)}  ·  Cumplimiento: ${pct(a.goal?100*a.sales/a.goal:0)}</text>${mark(900)}</svg>`;
 }
@@ -952,6 +984,7 @@ async function restore(file){
 }
 
 function render(){nav();({ranking,history,entry,team}[ui.page]||ranking)();}
+window.matchMedia('(max-width:760px)').addEventListener('change',()=>{if(ui.page==='history')history();});
 function rerender(){if(ui.page==='entry')startEntry();else render();}
 document.addEventListener('click',e=>{
   const page=e.target.closest('[data-page]');if(page){if(page.dataset.page==='entry'&&!requireEditor())return;ui.page=page.dataset.page;if(ui.page==='entry'){Object.assign(ui,currentPeriod());startEntry();}else render();cloud?.schedule(600);return;}
@@ -976,7 +1009,7 @@ document.addEventListener('click',e=>{
     case 'ghDisconnect':if(prompt('Desvincular detendrá la sincronización en este dispositivo. Escribe DESVINCULAR para confirmar:')==='DESVINCULAR')cloud?.disconnect();break;
     case 'nextEntry':nextEntry();break;
     case 'prevEntry':prevEntry();break;
-    case 'exportRank':case 'shareRank':if(rangeRows(ui.year,ui.month).length)renderPNG(rankPoster(),`Nunz_Ranking_${ui.rankPeriod==='annual'?ui.year:ui.rankPeriod==='month'?ym(ui.year,ui.month):entryKey()}_${ui.rankPeriod}_${ui.mode}`,action.dataset.action==='shareRank');else showToast('No hay resultados para exportar');break;
+    case 'exportRank':case 'shareRank':if(rangeRows(ui.year,ui.month).length)renderPNG(rankPoster(),`Nunz_Ranking_${ui.rankPeriod==='annual'?ui.year:ym(ui.year,ui.month)}_${ui.rankPeriod}`,action.dataset.action==='shareRank');else showToast('No hay resultados para exportar');break;
     case 'exportChart':case 'shareChart':renderPNG(chartPoster(),`Nunz_Progreso_${ui.chartPeriod}_${ui.year}_${ui.mode}`,action.dataset.action==='shareChart');break;
     case 'backup':backup();break;
     case 'goToday':Object.assign(ui,currentPeriod());startEntry();showToast('Se seleccionó el período actual');break;
@@ -991,7 +1024,6 @@ document.addEventListener('change',e=>{
   if(id==='year'){ui.year=Number(v);ui.week=Math.min(ui.week,weekCount(ui.year,ui.month));rerender();return;}
   if(id==='month'){ui.month=Number(v);ui.week=Math.min(ui.week,weekCount(ui.year,ui.month));rerender();return;}
   if(id==='week'){ui.week=Number(v);rerender();return;}
-  if(id==='historyMonth'){ui.historyMonth=v;render();return;}
   if(id==='sellerFilter'){ui.filter=v;render();return;}
 });
 document.addEventListener('toggle',e=>{if(e.target.id==='advancedSettings')ui.adminExpanded=e.target.open;},true);
