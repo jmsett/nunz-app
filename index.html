@@ -51,9 +51,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .periodpill{display:inline-flex;align-items:center;justify-content:center;background:var(--yellow);border-radius:80px;padding:7px 28px;min-width:200px;font-size:16px;font-weight:810;color:#064a96}
 .sectionlead.compact h2{font-size:clamp(29px,3.2vw,40px)}
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 25px}
-.stat{background:white;border:1px solid var(--line);border-radius:18px;padding:15px 17px;min-width:0;display:flex;flex-direction:column;gap:5px}
-.stat .lab{color:#697b94;font-size:12px;font-weight:720}.stat .value{font-size:clamp(19px,2.6vw,29px);line-height:1.2;font-weight:840;letter-spacing:-.8px;color:var(--deep);overflow-wrap:anywhere}
-.stat .value.lit{align-self:flex-start;background:#e8f78e;padding:1px 9px;border-radius:9px}
+.stat{background:white;border:1px solid var(--line);border-radius:18px;padding:15px 17px;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:5px}
+.stat .lab{color:#697b94;font-size:12px;font-weight:720;display:flex;align-items:center;justify-content:center;min-height:2.7em;width:100%;line-height:1.35}.stat .value{font-size:clamp(19px,2.6vw,29px);line-height:1.2;font-weight:840;letter-spacing:-.8px;color:var(--deep);overflow-wrap:anywhere}
+.stat .value.lit{align-self:center;background:#e8f78e;padding:1px 9px;border-radius:9px}
 .ranklist{display:flex;flex-direction:column;gap:9px;margin-top:23px}
 .rankitem{display:grid;grid-template-columns:86px minmax(0,1fr) minmax(130px,auto);align-items:center;gap:15px;padding:21px 23px;background:white;border:1px solid #e2eaf1;border-radius:24px;box-shadow:0 7px 16px rgba(3,63,130,.09);min-width:0}
 .rankitem.top{min-height:145px}.rankitem.first{border:1.5px solid #d8e400;box-shadow:0 8px 20px rgba(189,198,0,.16)}
@@ -145,10 +145,10 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .rankitem.other .bar{min-width:0}
 .ranknum{display:grid;place-items:center;line-height:1;vertical-align:middle;padding:0;width:39px;height:39px;font-variant-numeric:tabular-nums}
 .tablewrap{overflow:auto;-webkit-overflow-scrolling:touch;max-height:620px;border:1px solid var(--line);border-radius:14px}
-.historytable{width:100%;min-width:540px;border-collapse:separate;border-spacing:0;white-space:nowrap;font-size:14px}
+.historytable{width:100%;min-width:540px;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .historytable thead{position:sticky;top:0;z-index:1}
-.historytable th,.historytable td{padding:12px 15px;border-bottom:1px solid #e6eef5;text-align:right}
-.historytable tr> :first-child{text-align:left}
+.historytable th,.historytable td{padding:9px 12px;border-bottom:1px solid #e6eef5;text-align:center;vertical-align:middle}
+.historytable tr> :first-child{text-align:left;width:16%}
 .historytable thead th{background:#eaf3fc;color:#073f83;font-weight:750}
 .historytable tbody tr:nth-child(even){background:#f7fbff}
 .historytable tbody th{font-weight:650;color:#134a80}
@@ -335,6 +335,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .rankitem.other .rankpercent{font-size:18px}
 .rankitem.other .rankamount{font-size:14px}
 .rankitem.other{grid-template-columns:40px 154px minmax(54px,1fr) minmax(100px,auto)}
+.legend-sales{background:#d8e600}.legend-target{background:#0875c5}
 .chart-range{margin:7px 0 0;text-align:center;font-size:14px;font-weight:700;color:var(--deep)}
 .chartscroll+.chartscroll{margin-top:12px}
 @media(max-width:1000px){
@@ -357,12 +358,13 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
  .historytable{display:block;min-width:0;white-space:normal;font-size:14px}
  .historytable thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
  .historytable tbody{display:block}
- .historytable tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;padding:12px;border-bottom:1px solid var(--line)}
+ .historytable tbody tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);gap:5px 4px;padding:9px 8px;border-bottom:1px solid var(--line)}
  .historytable tbody tr:last-child{border-bottom:0}
- .historytable tbody th,.historytable tbody td{display:block;min-width:0;padding:0;border:0;text-align:left;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
- .historytable tbody th{grid-column:1;grid-row:1;align-self:center;font-size:16px}
- .historytable td[data-label="Cumplimiento"]{grid-column:2;grid-row:1;text-align:right;font-weight:750}
- .historytable td::before{content:attr(data-label);display:block;font-size:12px;font-weight:600;color:#667b99;margin-bottom:2px}
+ .historytable tbody th,.historytable tbody td{display:block;min-width:0;width:auto;padding:0;border:0;text-align:center;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+ .historytable tbody th{grid-column:1 / -1;grid-row:1;font-size:14px;text-align:left}
+ .historytable tbody td{grid-row:2;font-size:14px;line-height:1.3}
+ .historytable td[data-label="Cumplimiento"]{font-weight:750}
+ .historytable td::before{content:attr(data-label);display:flex;align-items:center;justify-content:center;min-height:1.3em;font-size:12px;line-height:1.3;font-weight:600;color:#667b99;margin-bottom:2px}
  .tablewrap{max-height:none;overflow:visible}
 }
 </style>
@@ -650,7 +652,7 @@ function ranking(){
     if(top)return `<div class="rankitem top ${i===0?'first':''}">${award(i+1)}<div class="rankdetails"><div class="rankheading"><div class="rankname">${esc(r.name)}</div><div class="rankmetric">${value(r)}</div></div>${progress(r.percent)}</div></div>`;
     return `<div class="rankitem other"><div class="ranknum">${i+1}</div><div class="rankname">${esc(r.name)}</div>${progress(r.percent)}<div class="rankmetric">${value(r)}</div></div>`;
   }).join('');
-  const metricCards=[['Cumplimiento del equipo',pct(teamPct),true],['Ventas del equipo',money(team.sales)],['Vendedores evaluados',String(rows.length)]];
+  const metricCards=[['Cumplimiento',pct(teamPct),true],['Ventas',money(team.sales)],['Vendedores',String(rows.length)]];
   $('#content').innerHTML=`<section class="panel"><div class="controlrow rank-filters">${yearSelect()}${ui.rankPeriod==='annual'?'':monthSelect()}<div class="field report-field"><label for="rankPeriod">Informe</label><select id="rankPeriod"><option value="month" ${ui.rankPeriod==='month'?'selected':''}>Mensual</option><option value="annual" ${ui.rankPeriod==='annual'?'selected':''}>Anual</option></select></div></div><div class="sectionlead"><h2>Ranking de Ventas</h2><span class="periodpill">${esc(titlePeriod)}</span><p>${ui.rankPeriod==='annual'?'Cumplimiento y ventas del año · meses registrados':'Cumplimiento y ventas del equipo'}</p></div><div class="viewhead rank-actions">${exportActions('Rank')}</div>${rows.length?`${stats(metricCards)}<div class="ranklist">${list}</div><div class="footerquote">¡Sigamos avanzando!</div><div class="footercurve"></div><p class="hint">Ordenado por porcentaje de cumplimiento. ${ui.rankPeriod==='annual'?'El cumplimiento anual considera las ventas y metas de los meses que tienen reportes, sin contar dos veces un objetivo mensual. Los meses aún sin reporte no se incluyen en el porcentaje.':'Las ventas acumulan todas las semanas registradas del mes frente a la meta mensual completa. El amarillo destaca lo que supera el 100%.'}</p>`:`<div class="empty"><strong>Aún no hay datos para ${esc(titlePeriod)}.</strong>Registra las ventas semanales para generar el ranking.<p><button class="btn" data-page="entry">Registrar ventas</button></p></div>`}</section>`;
 }
 function series(){
@@ -661,6 +663,7 @@ function series(){
 }
 function chartSVG(points,w=950,h=420,scalePoints=points){
   const compact=w<600,fontSize=compact?12:16;
+  const salesColor=ui.mode==='amount'?'#d8e600':'#0875c5',goalColor='#0875c5';
   const pad={left:compact?(ui.mode==='percent'?48:62):85,right:compact?16:29,top:33,bottom:63},plotW=w-pad.left-pad.right,plotH=h-pad.top-pad.bottom;
   const seriesVals=scalePoints.filter(p=>p.value!==null).flatMap(p=>ui.mode==='amount'?[p.sales,p.goal]:[p.value]).filter(v=>v!==null&&Number.isFinite(v));
   if(!seriesVals.length)return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img"><rect width="100%" height="100%" fill="#fff"/><text x="${w/2}" y="${h/2}" text-anchor="middle" font-size="20" fill="#6c7e93">No hay datos para esta selección</text></svg>`;
@@ -695,15 +698,15 @@ function chartSVG(points,w=950,h=420,scalePoints=points){
       const a=ui.mode==='percent'?p.value:p.sales;
       const baseY=y(Math.max(0,a)),bottomY=y(Math.min(0,a));
       const left=x(i)-groupW/2;
-      plots+=`<rect x="${left}" y="${baseY}" width="${barW}" height="${Math.max(1,Math.abs(bottomY-baseY))}" rx="${Math.min(5,barW/3)}" fill="#0875c5"><title>${esc(p.label)} ventas: ${ui.mode==='percent'?pct(a):money(a)}</title></rect>`;
-      if(dual){let targetY=y(Math.max(0,p.goal));plots+=`<rect x="${left+barW+4}" y="${targetY}" width="${barW}" height="${Math.max(1,Math.abs(y(0)-targetY))}" rx="${Math.min(5,barW/3)}" fill="#d8e600"><title>${esc(p.label)} meta: ${money(p.goal)}</title></rect>`;}
+      plots+=`<rect x="${left}" y="${baseY}" width="${barW}" height="${Math.max(1,Math.abs(bottomY-baseY))}" rx="${Math.min(5,barW/3)}" fill="${salesColor}"><title>${esc(p.label)} ventas: ${ui.mode==='percent'?pct(a):money(a)}</title></rect>`;
+      if(dual){let targetY=y(Math.max(0,p.goal));plots+=`<rect x="${left+barW+4}" y="${targetY}" width="${barW}" height="${Math.max(1,Math.abs(y(0)-targetY))}" rx="${Math.min(5,barW/3)}" fill="${goalColor}"><title>${esc(p.label)} meta: ${money(p.goal)}</title></rect>`;}
       else if(a>100){const upper=y(a),lower=y(100);plots+=`<rect x="${left}" y="${upper}" width="${barW}" height="${Math.max(0,lower-upper)}" rx="4" fill="#dce600"/>`;}
       const achieved=100*p.sales/p.goal,labelY=y(dual?Math.max(a,p.goal):a)-9;
       plots+=`<text class="bar-label" x="${x(i)}" y="${labelY}" text-anchor="middle" font-size="${fontSize}" font-weight="750" fill="#123e76">${pct(achieved)}</text>`;
     });
   }else{
-    drawLine(ui.mode==='percent'?'value':'sales','#0875c5',true,ui.mode==='percent');
-    if(ui.mode==='amount')drawLine('goal','#d0dc00',false);
+    drawLine(ui.mode==='percent'?'value':'sales',salesColor,true,ui.mode==='percent');
+    if(ui.mode==='amount')drawLine('goal',goalColor,false);
     plots=lines.join('')+dots.join('');
   }
   let goalLine=ui.mode==='percent'&&minV<=100&&maxV>=100?`<line x1="${pad.left}" y1="${y(100)}" x2="${w-pad.right}" y2="${y(100)}" class="goal-line" stroke="#66788e" stroke-width="2" stroke-dasharray="7 5"/>`:'';
@@ -743,11 +746,16 @@ function historyCharts(points){
   if(!chunks.length)chunks.push([]);
   return chunks.map(chunk=>`<div class="chartscroll">${chunks.length>1?`<p class="chart-range">${esc(chunk[0].label)} – ${esc(chunk[chunk.length-1].label)}</p>`:''}${chartSVG(chunk,width,290,points)}</div>`).join('');
 }
+function historyLegend(){
+  if(ui.chartStyle==='table')return '';
+  const marker=ui.chartStyle==='bars'?'legendbar':'legendline';
+  return `<div class="chartlegend">${ui.mode==='amount'?`<span><i class="${marker} legend-sales"></i> Ventas</span><span><i class="${marker} legend-target"></i> Objetivo de ventas</span>`:`<span><i class="${marker}"></i> Cumplimiento</span><span><i class="legendgoal"></i> Meta 100%</span><span><i class="legendlime"></i> Sobre meta</span>`}</div>`;
+}
 function history(){
   title('Progreso histórico de ventas','Cumplimiento de metas y evolución comercial');
   const pts=series(),a=aggregate(pts.filter(p=>p.goal>0)),ratio=a.goal?100*a.sales/a.goal:0;
   const label=ui.chartPeriod==='annual'?'Comparación año por año':`Evolución mensual · ${ui.year}`;
-  $('#content').innerHTML=`<section class="panel"><div class="sectionlead compact"><h2>Progreso Histórico de Ventas</h2><p>Cumplimiento de metas</p></div><div class="chartcontrols"><div class="controlrow chart-filterbar">${ui.chartPeriod!=='annual'?yearSelect():''}<div class="field grow"><label for="sellerFilter">Vendedor</label><select id="sellerFilter"><option value="all">Todo el equipo</option>${store.sellers.map(s=>`<option value="${s.id}" ${ui.filter===s.id?'selected':''}>${esc(s.name)}${s.active?'':' (archivado)'}</option>`).join('')}</select></div></div><div class="controls chart-options"><div class="switchgroup"><span>Período</span>${seg('chartPeriod',[['monthly','Mensual'],['annual','Anual']])}</div><div class="switchgroup"><span>Gráfico</span>${seg('chartStyle',[['bars','Barras'],['points','Puntos + línea'],['table','Tabla']])}</div><div class="switchgroup"><span>Mostrar</span>${seg('mode',[['percent','% Cumplimiento'],['amount','Valor total (Q)']])}</div></div></div>${stats([['Ventas del período',money(a.sales)],['Objetivo del período',money(a.goal)],['Cumplimiento',pct(ratio),true]])}<div class="viewhead"><h2>${esc(label)}</h2>${exportActions('Chart')}</div><div class="chartbox">${ui.chartStyle==='table'?historyTable(pts):historyCharts(pts)}<div class="chartlegend" style="${ui.chartStyle==='table'?'display:none;':''}"><span><i class="${ui.chartStyle==='bars'?'legendbar':'legendline'}"></i> ${ui.mode==='percent'?'Cumplimiento':'Ventas'}</span>${ui.mode==='percent'?'<span><i class="legendgoal"></i> Meta 100%</span><span><i class="legendlime"></i> Sobre meta</span>':'<span><i class="legendlime"></i> Objetivo del período (Q)</span>'}</div></div><p class="hint">Sin datos = período sin reporte. Los meses y años suman las ventas semanales; la meta mensual cuenta una sola vez. También se incluyen los registros mensuales antiguos sin desglose semanal. ${ui.chartStyle==='bars'?'El porcentaje sobre cada barra indica el cumplimiento del objetivo del período.':''}</p></section>`;
+  $('#content').innerHTML=`<section class="panel"><div class="sectionlead compact"><h2>Progreso Histórico de Ventas</h2><p>Cumplimiento de metas</p></div><div class="chartcontrols"><div class="controlrow chart-filterbar">${ui.chartPeriod!=='annual'?yearSelect():''}<div class="field grow"><label for="sellerFilter">Vendedor</label><select id="sellerFilter"><option value="all">Todo el equipo</option>${store.sellers.map(s=>`<option value="${s.id}" ${ui.filter===s.id?'selected':''}>${esc(s.name)}${s.active?'':' (archivado)'}</option>`).join('')}</select></div></div><div class="controls chart-options"><div class="switchgroup"><span>Período</span>${seg('chartPeriod',[['monthly','Mensual'],['annual','Anual']])}</div><div class="switchgroup"><span>Gráfico</span>${seg('chartStyle',[['bars','Barras'],['points','Puntos + línea'],['table','Tabla']])}</div><div class="switchgroup"><span>Mostrar</span>${seg('mode',[['percent','% Cumplimiento'],['amount','Valor total (Q)']])}</div></div></div>${stats([['Ventas del período',money(a.sales)],['Objetivo del período',money(a.goal)],['Cumplimiento',pct(ratio),true]])}<div class="viewhead"><h2>${esc(label)}</h2>${exportActions('Chart')}</div><div class="chartbox">${ui.chartStyle==='table'?historyTable(pts):historyCharts(pts)}${historyLegend()}</div><p class="hint">Sin datos = período sin reporte. Los meses y años suman las ventas semanales; la meta mensual cuenta una sola vez. También se incluyen los registros mensuales antiguos sin desglose semanal. ${ui.chartStyle==='bars'?'El porcentaje sobre cada barra indica el cumplimiento del objetivo del período.':''}</p></section>`;
 }
 function sellerRowHTML(s){
   const readonly=isReadOnly();
@@ -941,7 +949,8 @@ function chartPoster(){
  const a=aggregate(pts.filter(p=>p.goal>0));
  const detail=ui.chartPeriod==='monthly'?`Mensual ${ui.year}`:'Comparación anual';
  const name=ui.filter==='all'?'Todo el equipo':seller(ui.filter)?.name||'Vendedor';
- return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="900" viewBox="0 0 1080 900" font-family="Arial,sans-serif"><rect width="1080" height="900" fill="white"/><rect width="1080" height="11" fill="#e1eb00"/><text x="540" y="180" font-size="49" text-anchor="middle" font-weight="850" fill="#073f83">Progreso Histórico de Ventas</text><text x="540" y="232" text-anchor="middle" fill="#74839a" font-size="25">${esc(detail)} · ${esc(name)}</text><text x="55" y="276" fill="#073f83" font-size="22" font-weight="700">${ui.mode==='percent'?'Cumplimiento':'Ventas'} · ${ui.chartStyle==='points'?'Puntos + línea':'Barras'}</text>${graph}<text x="540" y="833" fill="#073f83" text-anchor="middle" font-size="21">Ventas: ${money(a.sales)}  ·  Meta: ${money(a.goal)}  ·  Cumplimiento: ${pct(a.goal?100*a.sales/a.goal:0)}</text>${mark(900)}</svg>`;
+ const legend=ui.mode==='amount'?'<g font-size="18" fill="#153a6a"><rect x="720" y="261" width="18" height="12" rx="3" fill="#d8e600"/><text x="746" y="275">Ventas</text><rect x="850" y="261" width="18" height="12" rx="3" fill="#0875c5"/><text x="876" y="275">Objetivo</text></g>':'';
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="900" viewBox="0 0 1080 900" font-family="Arial,sans-serif"><rect width="1080" height="900" fill="white"/><rect width="1080" height="11" fill="#e1eb00"/><text x="540" y="180" font-size="49" text-anchor="middle" font-weight="850" fill="#073f83">Progreso Histórico de Ventas</text><text x="540" y="232" text-anchor="middle" fill="#74839a" font-size="25">${esc(detail)} · ${esc(name)}</text><text x="55" y="276" fill="#073f83" font-size="22" font-weight="700">${ui.mode==='percent'?'Cumplimiento':'Ventas'} · ${ui.chartStyle==='points'?'Puntos + línea':'Barras'}</text>${legend}${graph}<text x="540" y="833" fill="#073f83" text-anchor="middle" font-size="21">Ventas: ${money(a.sales)}  ·  Meta: ${money(a.goal)}  ·  Cumplimiento: ${pct(a.goal?100*a.sales/a.goal:0)}</text>${mark(900)}</svg>`;
 }
 // A share sheet when supported on iOS; otherwise a normal PNG download.
 async function renderPNG(svg,filename,share){

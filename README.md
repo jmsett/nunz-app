@@ -1,5 +1,7 @@
 ## v15 — Ranking e histórico adaptados a móvil
 
+Ajustes de presentación: resúmenes centrados y labels del ranking simplificados a Cumplimiento, Ventas y Vendedores. En el histórico en Q, el objetivo usa azul y las ventas amarillo, tanto en barras como en líneas y PNG, con leyendas correspondientes. En móvil y tablet, cada fila de la tabla alinea Ventas, Objetivo y Cumplimiento en tres columnas bajo el período, con menos espacio vertical.
+
 - Ranking mensual y anual, ordenado por cumplimiento, con porcentaje y ventas en Q visibles a la vez en pantalla y PNG.
 - Histórico mensual y anual con Barras como vista inicial y porcentaje conseguido sobre cada barra. El eje porcentual avanza de 25% en 25%; la línea discontinua de meta al 100% se dibuja por encima de las barras.
 - En móvil, el gráfico se divide en grupos de hasta seis períodos para conservar etiquetas legibles. La tabla presenta una ficha compacta por período con ventas, objetivo y cumplimiento, sin desplazamiento horizontal.
