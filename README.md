@@ -2,6 +2,8 @@
 
 Ajustes de presentación: resúmenes centrados y labels del ranking simplificados a Cumplimiento, Ventas y Vendedores. En el histórico en Q, el objetivo usa azul y las ventas amarillo, tanto en barras como en líneas y PNG, con leyendas correspondientes. En móvil y tablet, el período queda a la izquierda, centrado verticalmente junto a las tres columnas de Ventas, Objetivo y Cumplimiento. El ranking agrupa el porcentaje grande inmediatamente a la izquierda del monto pequeño, alineados a la derecha, también en PNG.
 
+Los años de la tabla permanecen completos en una línea. En Valor total (Q), barras y líneas muestran pares Ventas | Objetivo con sus colores y montos abreviados en Q (k = miles, M = millones); los gráficos se agrupan según el espacio disponible para evitar etiquetas superpuestas. El porcentaje se mantiene en la vista de cumplimiento.
+
 - Ranking mensual y anual, ordenado por cumplimiento, con porcentaje y ventas en Q visibles a la vez en pantalla y PNG.
 - Histórico mensual y anual con Barras como vista inicial y porcentaje conseguido sobre cada barra. El eje porcentual avanza de 25% en 25%; la línea discontinua de meta al 100% se dibuja por encima de las barras.
 - En móvil, el gráfico se divide en grupos de hasta seis períodos para conservar etiquetas legibles. La tabla presenta una ficha compacta por período con ventas, objetivo y cumplimiento, sin desplazamiento horizontal.
