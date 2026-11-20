@@ -665,10 +665,24 @@ function series(){
   const yearSet=[...new Set([...Object.keys(store.records),...Object.keys(store.weeks)].map(k=>Number(k.slice(0,4))).filter(Number.isFinite))].sort((a,b)=>a-b);
   return yearSet.map(y=>toPoint(String(y),Array.from({length:12},(_,i)=>monthRows(y,i+1)).flat()));
 }
-function amountLabelWidth(points,fontSize){
-  const context=document.createElement('canvas').getContext('2d');
-  context.font=`750 ${fontSize}px Arial`;
-  return Math.max(context.measureText('Q0 | Q0').width,...points.filter(p=>p.value!==null).map(p=>context.measureText(`${moneyCompact(p.sales)} | ${moneyCompact(p.goal)}`).width))+12;
+function chartAmountSummary(points,w,startY){
+  const compact=w<600,columns=compact?1:2,rowHeight=compact?28:32;
+  const perColumn=Math.ceil(points.length/columns),margin=compact?12:60,gap=compact?0:24;
+  const columnWidth=(w-margin*2-gap*(columns-1))/columns;
+  const height=(perColumn+1)*rowHeight+12;
+  let svg=`<g class="amount-summary" font-family="Arial,sans-serif" font-size="${compact?14:16}" fill="#153a6a">`;
+  for(let column=0;column<columns;column++){
+    const rows=points.slice(column*perColumn,(column+1)*perColumn);
+    if(!rows.length)continue;
+    const left=margin+column*(columnWidth+gap),salesX=left+columnWidth*.48,goalX=left+columnWidth*.84;
+    const headerY=startY+20;
+    svg+=`<g font-size="12" font-weight="650"><text x="${left}" y="${headerY}" fill="#657890">${ui.chartPeriod==='monthly'?'Mes':'Año'}</text><circle cx="${salesX-28}" cy="${headerY-4}" r="4" fill="#d8e600"/><text x="${salesX}" y="${headerY}" text-anchor="middle">Ventas</text><circle cx="${goalX-34}" cy="${headerY-4}" r="4" fill="#0875c5"/><text x="${goalX}" y="${headerY}" text-anchor="middle">Objetivo</text></g>`;
+    rows.forEach((p,i)=>{
+      const top=startY+(i+1)*rowHeight,baseline=top+rowHeight*.7,valid=p.value!==null;
+      svg+=`<g class="amount-detail" aria-label="${esc(p.label)}: ${valid?`Ventas ${money(p.sales)}; Objetivo ${money(p.goal)}`:'Sin datos'}"><line x1="${left}" y1="${top}" x2="${left+columnWidth}" y2="${top}" stroke="#e5edf5"/><text class="amount-period" x="${left}" y="${baseline}" font-weight="650">${esc(p.label)}</text><text class="amount-sales" x="${salesX}" y="${baseline}" text-anchor="middle">${valid?moneyCompact(p.sales):'—'}</text><text class="amount-goal" x="${goalX}" y="${baseline}" text-anchor="middle">${valid?moneyCompact(p.goal):'—'}</text></g>`;
+    });
+  }
+  return {height,svg:svg+'</g>'};
 }
 function chartSVG(points,w=950,h=420,scalePoints=points){
   const compact=w<600,fontSize=compact?12:16;
@@ -700,10 +714,6 @@ function chartSVG(points,w=950,h=420,scalePoints=points){
       if(labelsOn&&(points.length<=13||i%3===0))dots.push(`<text x="${xx}" y="${yy-14}" text-anchor="middle" font-size="${points.length>13?11:13}" font-weight="750" fill="#123e76">${key==='value'?pct(v):moneyCompact(v)}</text>`);
     });flush();
   };
-  const amountLabels=()=>points.map((p,i)=>{
-    if(p.value===null)return '';
-    return `<text class="amount-label" x="${x(i)}" y="${y(Math.max(p.sales,p.goal))-12}" text-anchor="middle" font-family="Arial,sans-serif" font-size="${compact?12:14}" font-weight="750" aria-label="Ventas: ${money(p.sales)}; Objetivo: ${money(p.goal)}"><tspan class="amount-sales" fill="${salesColor}" stroke="#718000" stroke-width=".35" paint-order="stroke">${moneyCompact(p.sales)}</tspan><tspan fill="#657890"> | </tspan><tspan class="amount-goal" fill="${goalColor}">${moneyCompact(p.goal)}</tspan></text>`;
-  }).join('');
   let plots='';
   if(ui.chartStyle==='bars'){
     const groupW=Math.min(42,plotW/Math.max(1,points.length)*.7),dual=ui.mode==='amount',barW=dual?groupW/2-2:groupW;
@@ -722,11 +732,12 @@ function chartSVG(points,w=950,h=420,scalePoints=points){
     if(ui.mode==='amount')drawLine('goal',goalColor,false);
     plots=lines.join('')+dots.join('');
   }
-  if(ui.mode==='amount')plots+=amountLabels();
   let goalLine=ui.mode==='percent'&&minV<=100&&maxV>=100?`<line x1="${pad.left}" y1="${y(100)}" x2="${w-pad.right}" y2="${y(100)}" class="goal-line" stroke="#66788e" stroke-width="2" stroke-dasharray="7 5"/>`:'';
   const step=points.length>40?5:points.length>25?3:points.length>14?2:1;
   const labels=points.map((p,i)=>i%step===0||i===points.length-1?`<text x="${x(i)}" y="${h-30}" text-anchor="middle" font-size="${fontSize}" fill="#586b85">${esc(p.label)}</text>`:'').join('');
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Ventas del período y objetivo mensual o anual"><rect width="${w}" height="${h}" fill="#fff"/>${grid}${plots}${goalLine}${labels}<text x="${w/2}" y="${h-5}" text-anchor="middle" font-size="12" fill="#8190a3">${ui.chartPeriod==='monthly'?'Meses':'Años'} · ${ui.mode==='percent'?'Ventas del período / meta (%)':'Ventas y objetivos (Q)'}</text></svg>`;
+  const summary=ui.mode==='amount'?chartAmountSummary(points,w,h+6):{height:0,svg:''};
+  const totalHeight=h+summary.height;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${totalHeight}" viewBox="0 0 ${w} ${totalHeight}" role="img" aria-label="Ventas del período y objetivo mensual o anual"><rect width="${w}" height="${totalHeight}" fill="#fff"/>${grid}${plots}${goalLine}${labels}<text x="${w/2}" y="${h-5}" text-anchor="middle" font-size="12" fill="#8190a3">${ui.chartPeriod==='monthly'?'Meses':'Años'} · ${ui.mode==='percent'?'Ventas del período / meta (%)':'Ventas y objetivos (Q)'}</text>${summary.svg}</svg>`;
 }
 function moneyCompact(v){return v>=1e6?`Q${(v/1e6).toFixed(1)}M`:v>=1000?`Q${Math.round(v/1000)}k`:money(v);}
 function historyTable(points){
@@ -752,16 +763,9 @@ function tablePoster(){
   });
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}" font-family="Arial,sans-serif"><rect width="1080" height="${h}" fill="#fff"/><text x="540" y="196" text-anchor="middle" font-size="48" font-weight="850" fill="#073f83">Progreso Histórico de Ventas</text><text x="540" y="260" text-anchor="middle" fill="#71829b" font-size="27">${esc(subtitle)} · ${esc(name)} · Tabla</text>${out}<rect x="0" y="${h-12}" width="1080" height="12" fill="#dce600"/></svg>`;
 }
-function historyChartGroups(points,width,compact){
-  let maxPoints=compact?6:points.length;
-  if(ui.mode==='amount'){
-    if(!points.some(p=>p.value!==null))return [points];
-    const labelWidth=amountLabelWidth(points,compact?12:14);
-    const left=compact?62:85,right=compact?16:29;
-    const plotWidth=width-left-right;
-    maxPoints=Math.max(1,Math.floor(plotWidth/labelWidth));
-  }
-  const groupCount=Math.max(1,Math.ceil(points.length/Math.max(1,maxPoints)));
+function historyChartGroups(points,compact){
+  if(!points.some(p=>p.value!==null))return [points];
+  const groupCount=compact&&points.length>6?2:1;
   const groupSize=Math.max(1,Math.ceil(points.length/groupCount)),chunks=[];
   for(let i=0;i<points.length;i+=groupSize)chunks.push(points.slice(i,i+groupSize));
   return chunks.length?chunks:[[]];
@@ -769,7 +773,7 @@ function historyChartGroups(points,width,compact){
 function historyCharts(points){
   const compact=window.matchMedia('(max-width:760px)').matches;
   const width=compact?Math.max(240,$('#content').clientWidth-34):950,height=compact?290:420;
-  const chunks=historyChartGroups(points,width,compact);
+  const chunks=historyChartGroups(points,compact);
   return chunks.map(chunk=>`<div class="chartscroll">${chunks.length>1?`<p class="chart-range">${esc(chunk[0].label)} – ${esc(chunk[chunk.length-1].label)}</p>`:''}${chartSVG(chunk,width,height,points)}</div>`).join('');
 }
 function historyLegend(){
@@ -781,7 +785,7 @@ function history(){
   title('Progreso histórico de ventas','Cumplimiento de metas y evolución comercial');
   const pts=series(),a=aggregate(pts.filter(p=>p.goal>0)),ratio=a.goal?100*a.sales/a.goal:0;
   const label=ui.chartPeriod==='annual'?'Comparación año por año':`Evolución mensual · ${ui.year}`;
-  $('#content').innerHTML=`<section class="panel"><div class="sectionlead compact"><h2>Progreso Histórico de Ventas</h2><p>Cumplimiento de metas</p></div><div class="chartcontrols"><div class="controlrow chart-filterbar">${ui.chartPeriod!=='annual'?yearSelect():''}<div class="field grow"><label for="sellerFilter">Vendedor</label><select id="sellerFilter"><option value="all">Todo el equipo</option>${store.sellers.map(s=>`<option value="${s.id}" ${ui.filter===s.id?'selected':''}>${esc(s.name)}${s.active?'':' (archivado)'}</option>`).join('')}</select></div></div><div class="controls chart-options"><div class="switchgroup"><span>Período</span>${seg('chartPeriod',[['monthly','Mensual'],['annual','Anual']])}</div><div class="switchgroup"><span>Gráfico</span>${seg('chartStyle',[['bars','Barras'],['points','Puntos + línea'],['table','Tabla']])}</div><div class="switchgroup"><span>Mostrar</span>${seg('mode',[['percent','% Cumplimiento'],['amount','Valor total (Q)']])}</div></div></div>${stats([['Ventas del período',money(a.sales)],['Objetivo del período',money(a.goal)],['Cumplimiento',pct(ratio),true]])}<div class="viewhead"><h2>${esc(label)}</h2>${exportActions('Chart')}</div><div class="chartbox">${ui.chartStyle==='table'?historyTable(pts):historyCharts(pts)}${historyLegend()}</div><p class="hint">Sin datos = período sin reporte. Los meses y años suman las ventas semanales; la meta mensual cuenta una sola vez. También se incluyen los registros mensuales antiguos sin desglose semanal. ${ui.mode==='amount'?'Las etiquetas muestran Ventas | Objetivo en Q, con el color de cada serie. k = miles; M = millones.':ui.chartStyle==='bars'?'El porcentaje sobre cada barra indica el cumplimiento del objetivo del período.':''}</p></section>`;
+  $('#content').innerHTML=`<section class="panel"><div class="sectionlead compact"><h2>Progreso Histórico de Ventas</h2><p>Cumplimiento de metas</p></div><div class="chartcontrols"><div class="controlrow chart-filterbar">${ui.chartPeriod!=='annual'?yearSelect():''}<div class="field grow"><label for="sellerFilter">Vendedor</label><select id="sellerFilter"><option value="all">Todo el equipo</option>${store.sellers.map(s=>`<option value="${s.id}" ${ui.filter===s.id?'selected':''}>${esc(s.name)}${s.active?'':' (archivado)'}</option>`).join('')}</select></div></div><div class="controls chart-options"><div class="switchgroup"><span>Período</span>${seg('chartPeriod',[['monthly','Mensual'],['annual','Anual']])}</div><div class="switchgroup"><span>Gráfico</span>${seg('chartStyle',[['bars','Barras'],['points','Puntos + línea'],['table','Tabla']])}</div><div class="switchgroup"><span>Mostrar</span>${seg('mode',[['percent','% Cumplimiento'],['amount','Valor total (Q)']])}</div></div></div>${stats([['Ventas del período',money(a.sales)],['Objetivo del período',money(a.goal)],['Cumplimiento',pct(ratio),true]])}<div class="viewhead"><h2>${esc(label)}</h2>${exportActions('Chart')}</div><div class="chartbox">${ui.chartStyle==='table'?historyTable(pts):historyCharts(pts)}${historyLegend()}</div><p class="hint">Sin datos = período sin reporte. Los meses y años suman las ventas semanales; la meta mensual cuenta una sola vez. También se incluyen los registros mensuales antiguos sin desglose semanal. ${ui.mode==='amount'?'Los montos de ventas y objetivos aparecen debajo de cada gráfico. k = miles de Q; M = millones de Q.':ui.chartStyle==='bars'?'El porcentaje sobre cada barra indica el cumplimiento del objetivo del período.':''}</p></section>`;
 }
 function sellerRowHTML(s){
   const readonly=isReadOnly();
@@ -971,9 +975,14 @@ function rankPoster(){
 }
 function chartPoster(){
  if(ui.chartStyle==='table')return tablePoster();
- const pts=series(),groups=historyChartGroups(pts,1000,false),graphHeight=groups.length>1?320:470;
- const height=310+groups.length*graphHeight+(groups.length-1)*20+120;
- const graph=groups.map((points,i)=>chartSVG(points,1000,graphHeight,pts).replace(/<svg[^>]*>/,`<g transform="translate(40 ${310+i*(graphHeight+20)})">`).replace(/<\/svg>$/,'</g>')).join('');
+ const pts=series(),groups=historyChartGroups(pts,false),graphHeight=470;
+ let nextY=310;
+ const graph=groups.map(points=>{
+   const svg=chartSVG(points,1000,graphHeight,pts),height=Number(svg.match(/<svg[^>]* height="([^"]+)"/)[1]);
+   const out=svg.replace(/<svg[^>]*>/,`<g transform="translate(40 ${nextY})">`).replace(/<\/svg>$/,'</g>');
+   nextY+=height+20;return out;
+ }).join('');
+ const height=nextY-20+120;
  const a=aggregate(pts.filter(p=>p.goal>0));
  const detail=ui.chartPeriod==='monthly'?`Mensual ${ui.year}`:'Comparación anual';
  const name=ui.filter==='all'?'Todo el equipo':seller(ui.filter)?.name||'Vendedor';
