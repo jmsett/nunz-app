@@ -93,6 +93,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .entrycard{background:#fff;max-width:560px;margin:26px auto 17px;border:1px solid #d6e6f3;border-radius:27px;padding:35px;box-shadow:0 18px 38px rgba(4,64,127,.115);user-select:none;touch-action:pan-y;transition:transform .2s,opacity .2s}
 .avatar{background:#eaf6ff;border-radius:17px;display:grid;place-items:center;width:58px;height:58px;margin-bottom:17px;font-size:28px}
 .entrycard h2{font-size:clamp(27px,4vw,33px);margin:0 0 6px}.entrycard .subtitle{font-size:13px;color:#8594a7;margin-bottom:21px}
+.entryheading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+.entrycard .entryheading h2{min-width:0;margin:0;overflow-wrap:anywhere}
+.entrypercent{flex:none;color:var(--deep);font-size:26px;font-weight:840;white-space:nowrap;font-variant-numeric:tabular-nums}
 .entrycard .field{margin-bottom:17px}.entrycard input{font-size:22px;font-weight:740;min-height:61px}
 .entryactions{display:flex;justify-content:space-between;gap:10px;max-width:560px;margin:auto}.swipehint{text-align:center;color:#8b9cb0;font-size:12px;margin:15px 0 3px}
 .footeract{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
@@ -331,9 +334,18 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .btn.whatsapp{background:#25d366;color:#fff}
 .btn.whatsapp:hover{background:#1ebe5d}
 .rank-actions{justify-content:flex-end}
+.rank-stats{grid-template-columns:minmax(0,.85fr) repeat(2,minmax(0,1.1fr)) minmax(48px,.65fr)}
+.rank-stats .stat .lab{font-size:clamp(8px,1.1vw,12px)}
+.rank-stats .stat .value{white-space:nowrap;overflow-wrap:normal}
+.rank-stats .stat:nth-child(2),.rank-stats .stat:nth-child(3){container-type:inline-size}
+.rank-stats .stat:nth-child(2) .value,.rank-stats .stat:nth-child(3) .value{font-size:min(clamp(13px,2.6vw,29px),calc(100cqw / (var(--value-length) * .6)))}
 @media(max-width:760px){
- .rank-stats{grid-template-columns:minmax(0,1fr) max-content minmax(0,1fr)}
- .rank-stats .stat:nth-child(2) .value{font-size:clamp(13px,3.8vw,21px);white-space:nowrap;overflow-wrap:normal}
+ .rank-stats{gap:4px}
+ .rank-stats .stat{padding-inline:3px}
+ .rank-stats .stat .lab{font-size:clamp(8px,2.3vw,10px)}
+ .rank-stats .stat .value{white-space:nowrap;overflow-wrap:normal;font-size:clamp(13px,3.8vw,21px)}
+ .rank-stats .stat:nth-child(2) .value,.rank-stats .stat:nth-child(3) .value{font-size:min(clamp(10px,3.1vw,21px),calc(100cqw / (var(--value-length) * .6)))}
+ .rank-stats .value.lit{padding-inline:4px}
  .history-stats{grid-template-columns:repeat(2,minmax(0,1fr)) minmax(68px,.8fr)}
  .history-stats .stat:nth-child(-n+2){padding-inline:4px}
  .history-stats .stat:nth-child(-n+2) .value{font-size:clamp(11px,3.4vw,21px);white-space:nowrap;overflow-wrap:normal}
@@ -679,7 +691,11 @@ function yearSelect(){const years=[...new Set([...Object.keys(store.records||{})
 function monthSelect(){return `<div class="field"><label for="month">Mes</label><select id="month">${MONTHS.map((m,i)=>`<option value="${i+1}" ${ui.month===i+1?'selected':''}>${m}</option>`).join('')}</select></div>`;}
 function weekSelect(){ui.week=Math.min(ui.week,weekCount(ui.year,ui.month));return `<div class="field"><label for="week">Semana</label><select id="week">${Array.from({length:weekCount(ui.year,ui.month)},(_,i)=>{let w=i+1;return `<option value="${w}" ${ui.week===w?'selected':''}>S${w} · ${dateRange(ui.year,ui.month,w).split(' de ')[0]}</option>`}).join('')}</select></div>`;}
 function seg(prop,opts){return `<div class="seg" role="group">${opts.map(([v,t])=>`<button type="button" class="${ui[prop]===v?'selected':''}" data-set="${prop}" data-value="${v}" aria-pressed="${ui[prop]===v}">${t}</button>`).join('')}</div>`;}
-function stats(items,className=''){return `<div class="stats ${esc(className)}">${items.map(([label,value,accent])=>`<div class="stat"><span class="lab">${esc(label)}</span><span class="value ${accent?'lit':''}">${esc(value)}</span></div>`).join('')}</div>`;}
+function stats(items,className=''){return `<div class="stats ${esc(className)}">${items.map(([label,value,accent])=>`<div class="stat"><span class="lab">${esc(label)}</span><span class="value ${accent?'lit':''}" style="--value-length:${String(value).length}">${esc(value)}</span></div>`).join('')}</div>`;}
+function rankingMetrics(rows){
+  const team=aggregate(rows);
+  return [['Cumplimiento',pct(team.goal?100*team.sales/team.goal:0),true],['Ventas',money(team.sales)],['Objetivo',money(team.goal)],['Vendedores',String(rows.length)]];
+}
 // Progress bars are capped at 100%; when over target the yellow overpaint starts at the RIGHT (100%) and grows LEFT.
 function progress(percent){
   // La barra siempre se basa en el objetivo propio del vendedor, INDEPENDIENTEMENTE del modo numérico (% o Q).
@@ -706,14 +722,13 @@ function exportActions(kind){
 function ranking(){
   title('Ranking de ventas',ui.rankPeriod==='annual'?'Cumplimiento de objetivos de los meses registrados del año':'Avance acumulado frente al objetivo mensual');
   const rows=rangeRows(ui.year,ui.month).sort((a,b)=>b.percent-a.percent||b.sales-a.sales);
-  const team=aggregate(rows),teamPct=team.goal?team.sales/team.goal*100:0;
   const titlePeriod=rankingPeriodLabel();
   const value=r=>`<span class="rankpercent">${pct(r.percent)}</span><span class="rankamount">${money(r.sales)}</span>`;
   const list=rows.map((r,i)=>{
     const top=i<3;
     return `<div class="rankitem ${top?`top ${i===0?'first':''}`:'other'}">${top?award(i+1):`<div class="ranknum">${i+1}</div>`}<div class="rankdetails"><div class="rankheading"><div class="rankname">${esc(r.name)}</div><div class="rankmetric">${value(r)}</div></div>${progress(r.percent)}</div></div>`;
   }).join('');
-  const metricCards=[['Cumplimiento',pct(teamPct),true],['Ventas',money(team.sales)],['Vendedores',String(rows.length)]];
+  const metricCards=rankingMetrics(rows);
   $('#content').innerHTML=`<section class="panel"><div class="controlrow rank-filters">${yearSelect()}${ui.rankPeriod==='annual'?'':monthSelect()}<div class="field report-field"><label for="rankPeriod">Informe</label><select id="rankPeriod"><option value="month" ${ui.rankPeriod==='month'?'selected':''}>Mensual</option><option value="annual" ${ui.rankPeriod==='annual'?'selected':''}>Anual</option></select></div></div><div class="sectionlead"><h2>Ranking de Ventas</h2><span class="periodpill">${esc(titlePeriod)}</span><p>${ui.rankPeriod==='annual'?'Cumplimiento y ventas del año · meses registrados':'Cumplimiento y ventas del equipo'}</p></div><div class="viewhead rank-actions">${exportActions('Rank')}</div>${rows.length?`${stats(metricCards,'rank-stats')}<div class="ranklist">${list}</div><div class="footerquote">¡Sigamos avanzando!</div><div class="footercurve"></div><p class="hint">Ordenado por porcentaje de cumplimiento. ${ui.rankPeriod==='annual'?'El cumplimiento anual considera las ventas y metas de los meses que tienen reportes, sin contar dos veces un objetivo mensual. Los meses aún sin reporte no se incluyen en el porcentaje.':'Las ventas acumulan todas las semanas registradas del mes frente a la meta mensual completa. El amarillo destaca lo que supera el 100%.'}</p>`:`<div class="empty"><strong>Aún no hay datos para ${esc(titlePeriod)}.</strong>Registra las ventas semanales para generar el ranking.<p><button class="btn" data-page="entry">Registrar ventas</button></p></div>`}</section>`;
 }
 function series(){
@@ -975,8 +990,13 @@ function entry(){
   const goal=d.goal??(monthlyGoal||'');
   const sales=d.sales??(saved.sales!==undefined?cumulativeThrough(id,ui.year,ui.month,ui.week):null)??'';
   const existingLegacy=!!store.records[ym(ui.year,ui.month)]&&!hasWeeklyMonth(ui.year,ui.month);
-  $('#content').innerHTML=`<section class="panel"><div class="controlrow entry-filters">${yearSelect()}${monthSelect()}${weekSelect()}<button type="button" class="btn small secondary today-btn" data-action="goToday">↻ Semana actual</button></div><div class="note"><strong>Meta mensual fija:</strong> indica una sola meta para ${esc(MONTHS[ui.month-1])} y reutilízala en todas las semanas. <strong>Ventas acumuladas:</strong> escribe lo vendido desde el día 1 hasta el cierre de la semana ${ui.week}. El ranking compara el acumulado con el objetivo mensual. El historial guarda sólo el incremento de esta semana y suma las semanas para calcular los meses y años.</div>${existingLegacy?`<p class="note warning">Hay información mensual antigua para este período. Al registrar semanas se mostrará el acumulado semanal y se conservará el registro original en tu respaldo.</p>`:''}${(store.monthlyGoalReview[ym(ui.year,ui.month)]||[]).includes(id)?`<p class="note warning">Este vendedor tiene semanas importadas del formato antiguo, pero no suficientes datos para conocer la meta mensual. Confirma la meta real en el campo siguiente.</p>`:''}<div class="entrymeta"><strong>Vendedor ${ui.entryIndex+1} de ${n}</strong><span>Semana ${ui.week} · ${MONTHS[ui.month-1]} ${ui.year}</span></div><div class="steptrack"><span style="width:${100*ui.entryIndex/n}%"></span></div><div class="entrycard" id="swipeCard"><div class="avatar">👤</div><h2>${esc(seller(id)?.name||'Vendedor')}</h2><div class="subtitle">${esc(dateRange(ui.year,ui.month,ui.week))}</div><div class="field"><label for="goal">Objetivo mensual (Q)</label><input id="goal" type="text" inputmode="decimal" placeholder="Ej. 100,000.00" value="${esc(formatAmount(goal,true))}" autocomplete="off"/></div><div class="field"><label for="sales">Ventas acumuladas hasta esta semana (Q)</label><input id="sales" type="text" inputmode="decimal" placeholder="Ej. 67,000.00" value="${esc(formatAmount(sales,true))}" autocomplete="off"/></div><div class="note">${prior!==null?`Último acumulado anterior: <strong>${money(prior)}</strong>. `:''}La app guardará únicamente lo vendido en esta semana, calculado restando el acumulado anterior. Puedes corregir la meta mensual aquí.</div></div><div class="entryactions"><button class="btn ghost" data-action="prevEntry" ${ui.entryIndex===0?'disabled':''}>← Anterior</button><button class="btn" data-action="nextEntry">${ui.entryIndex===n-1?'✓ Completar semana':'Guardar y siguiente ←'}</button></div><div class="swipehint">← Desliza la tarjeta hacia la izquierda o usa el botón para continuar</div></section>`;
-  enableSwipe();
+  $('#content').innerHTML=`<section class="panel"><div class="controlrow entry-filters">${yearSelect()}${monthSelect()}${weekSelect()}<button type="button" class="btn small secondary today-btn" data-action="goToday">↻ Semana actual</button></div><div class="note"><strong>Meta mensual fija:</strong> indica una sola meta para ${esc(MONTHS[ui.month-1])} y reutilízala en todas las semanas. <strong>Ventas acumuladas:</strong> escribe lo vendido desde el día 1 hasta el cierre de la semana ${ui.week}. El ranking compara el acumulado con el objetivo mensual. El historial guarda sólo el incremento de esta semana y suma las semanas para calcular los meses y años.</div>${existingLegacy?`<p class="note warning">Hay información mensual antigua para este período. Al registrar semanas se mostrará el acumulado semanal y se conservará el registro original en tu respaldo.</p>`:''}${(store.monthlyGoalReview[ym(ui.year,ui.month)]||[]).includes(id)?`<p class="note warning">Este vendedor tiene semanas importadas del formato antiguo, pero no suficientes datos para conocer la meta mensual. Confirma la meta real en el campo siguiente.</p>`:''}<div class="entrymeta"><strong>Vendedor ${ui.entryIndex+1} de ${n}</strong><span>Semana ${ui.week} · ${MONTHS[ui.month-1]} ${ui.year}</span></div><div class="steptrack"><span style="width:${100*ui.entryIndex/n}%"></span></div><div class="entrycard" id="swipeCard"><div class="avatar">👤</div><div class="entryheading"><h2>${esc(seller(id)?.name||'Vendedor')}</h2><output id="entryPercent" class="entrypercent" aria-label="Cumplimiento del objetivo mensual" aria-live="polite">—</output></div><div class="subtitle">${esc(dateRange(ui.year,ui.month,ui.week))}</div><div class="field"><label for="goal">Objetivo mensual (Q)</label><input id="goal" type="text" inputmode="decimal" placeholder="Ej. 100,000.00" value="${esc(formatAmount(goal,true))}" autocomplete="off"/></div><div class="field"><label for="sales">Ventas acumuladas hasta esta semana (Q)</label><input id="sales" type="text" inputmode="decimal" placeholder="Ej. 67,000.00" value="${esc(formatAmount(sales,true))}" autocomplete="off"/></div><div class="note">${prior!==null?`Último acumulado anterior: <strong>${money(prior)}</strong>. `:''}La app guardará únicamente lo vendido en esta semana, calculado restando el acumulado anterior. Puedes corregir la meta mensual aquí.</div></div><div class="entryactions"><button class="btn ghost" data-action="prevEntry" ${ui.entryIndex===0?'disabled':''}>← Anterior</button><button class="btn" data-action="nextEntry">${ui.entryIndex===n-1?'✓ Completar semana':'Guardar y siguiente ←'}</button></div><div class="swipehint">← Desliza la tarjeta hacia la izquierda o usa el botón para continuar</div></section>`;
+  updateEntryPercent();enableSwipe();
+}
+function updateEntryPercent(){
+  const output=$('#entryPercent'),goal=parseAmount($('#goal')?.value),sales=parseAmount($('#sales')?.value);
+  if(!output)return;
+  output.textContent=Number.isFinite(goal)&&goal>0&&Number.isFinite(sales)?pct(100*sales/goal):'—';
 }
 function draftEntry(){
   if(isReadOnly())return;
@@ -1044,7 +1064,11 @@ function mark(h){return store.demo?`<text x="1030" y="${h-25}" text-anchor="end"
 function rankPoster(){
   const rows=rangeRows(ui.year,ui.month).sort((a,b)=>b.percent-a.percent||b.sales-a.sales);
   const total=rows.length,bodyH=rows.reduce((a,r,i)=>a+(i<3?154:79),0)+(total?13*(total-1):0);
-  const h=430+bodyH+135,yStart=362;
+  const h=540+bodyH+135,yStart=472;
+  const metrics=rankingMetrics(rows).map(([label,value,accent],i)=>{
+    const x=39+i*253;
+    return `<g class="rank-summary"><rect x="${x}" y="349" width="243" height="93" rx="15" fill="${accent?'#f5fad9':'#fff'}" stroke="#dce8f3"/><text x="${x+121.5}" y="379" text-anchor="middle" font-size="20" font-weight="650" fill="#697b94">${esc(label)}</text><text x="${x+121.5}" y="414" text-anchor="middle" font-size="${Math.min(29,330/String(value).length)}" font-weight="800" fill="#073f83">${esc(value)}</text></g>`;
+  }).join('');
   let y=yStart,body='';
   rows.forEach((r,i)=>{
     const top=i<3,hh=top?154:79;
@@ -1055,7 +1079,7 @@ function rankPoster(){
     y+=hh+13;
   });
   const date=rankingPeriodLabel();
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}" font-family="Arial,sans-serif"><defs><filter id="softGlow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="1080" height="${h}" fill="#fff"/><rect x="0" y="${h-13}" width="1080" height="13" fill="#dfe900"/><text x="540" y="205" text-anchor="middle" font-size="64" font-weight="850" fill="#083f83">Ranking de Ventas</text><rect x="220" y="223" width="640" height="53" rx="27" fill="#e2eb00"/><text x="540" y="259" text-anchor="middle" font-size="30" fill="#064c91" font-weight="810">${esc(date)}</text><text x="540" y="318" text-anchor="middle" font-style="italic" font-size="28" fill="#73829a">${ui.rankPeriod==='annual'?'Cumplimiento y ventas de meses reportados':'Cumplimiento y ventas del equipo'}</text>${body}<text x="540" y="${h-92}" text-anchor="middle" font-size="36" font-style="italic" font-weight="750" fill="#073f83">¡Sigamos avanzando!</text><path d="M390 ${h-73} Q540 ${h-90} 690 ${h-73}" fill="none" stroke="#dbe900" stroke-width="5"/>${mark(h)}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}" font-family="Arial,sans-serif"><defs><filter id="softGlow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="1080" height="${h}" fill="#fff"/><rect x="0" y="${h-13}" width="1080" height="13" fill="#dfe900"/><text x="540" y="205" text-anchor="middle" font-size="64" font-weight="850" fill="#083f83">Ranking de Ventas</text><rect x="220" y="223" width="640" height="53" rx="27" fill="#e2eb00"/><text x="540" y="259" text-anchor="middle" font-size="30" fill="#064c91" font-weight="810">${esc(date)}</text><text x="540" y="318" text-anchor="middle" font-style="italic" font-size="28" fill="#73829a">${ui.rankPeriod==='annual'?'Cumplimiento y ventas de meses reportados':'Cumplimiento y ventas del equipo'}</text>${metrics}${body}<text x="540" y="${h-92}" text-anchor="middle" font-size="36" font-style="italic" font-weight="750" fill="#073f83">¡Sigamos avanzando!</text><path d="M390 ${h-73} Q540 ${h-90} 690 ${h-73}" fill="none" stroke="#dbe900" stroke-width="5"/>${mark(h)}</svg>`;
 }
 function chartPoster(){
  if(ui.chartStyle==='table')return tablePoster();
@@ -1071,7 +1095,7 @@ function chartPoster(){
  const detail=ui.chartPeriod==='monthly'?`Mensual ${ui.year}`:'Comparación anual';
  const name=ui.filter==='all'?'Todo el equipo':seller(ui.filter)?.name||'Vendedor';
  const legend=ui.mode==='amount'?'<g font-size="18" fill="#153a6a"><rect x="720" y="261" width="18" height="12" rx="3" fill="#d8e600"/><text x="746" y="275">Ventas</text><rect x="850" y="261" width="18" height="12" rx="3" fill="#0875c5"/><text x="876" y="275">Objetivo</text></g>':'';
- return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${height}" viewBox="0 0 1080 ${height}" font-family="Arial,sans-serif"><rect width="1080" height="${height}" fill="white"/><rect width="1080" height="11" fill="#e1eb00"/><text x="540" y="180" font-size="49" text-anchor="middle" font-weight="850" fill="#073f83">Progreso Histórico de Ventas</text><text x="540" y="232" text-anchor="middle" fill="#74839a" font-size="25">${esc(detail)} · ${esc(name)}</text><text x="55" y="276" fill="#073f83" font-size="22" font-weight="700">${ui.mode==='percent'?'Cumplimiento':'Ventas'} · ${ui.chartStyle==='points'?'Puntos + línea':'Barras'}</text>${legend}${graph}<text x="540" y="${height-67}" fill="#073f83" text-anchor="middle" font-size="21">Ventas: ${money(a.sales)}  ·  Meta: ${money(a.goal)}  ·  Cumplimiento: ${pct(a.goal?100*a.sales/a.goal:0)}</text>${mark(height)}</svg>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${height}" viewBox="0 0 1080 ${height}" font-family="Arial,sans-serif"><rect width="1080" height="${height}" fill="white"/><rect width="1080" height="11" fill="#e1eb00"/><text x="540" y="180" font-size="49" text-anchor="middle" font-weight="850" fill="#073f83">Progreso Histórico de Ventas</text><text x="540" y="232" text-anchor="middle" fill="#74839a" font-size="25">${esc(detail)} · ${esc(name)}</text><text x="55" y="276" fill="#073f83" font-size="22" font-weight="700">${ui.mode==='percent'?'Cumplimiento':'Ventas'} · ${ui.chartStyle==='points'?'Puntos + línea':'Barras'}</text>${legend}${graph}<text x="540" y="${height-67}" fill="#073f83" text-anchor="middle" font-size="21" font-weight="800">Ventas: ${money(a.sales)}  ·  Meta: ${money(a.goal)}  ·  Cumplimiento: ${pct(a.goal?100*a.sales/a.goal:0)}</text>${mark(height)}</svg>`;
 }
 // A share sheet when supported on iOS; otherwise a normal PNG download.
 async function renderPNG(svg,filename,share,shareDetails={title:'Nun’z Laboratorios'}){
@@ -1157,8 +1181,8 @@ document.addEventListener('change',e=>{
   if(id==='sellerFilter'){ui.filter=v;render();return;}
 });
 document.addEventListener('toggle',e=>{if(e.target.id==='advancedSettings')ui.adminExpanded=e.target.open;},true);
-document.addEventListener('input',e=>{if(e.target.matches('#goal,#sales')){formatAmountField(e.target);draftEntry();}});
-document.addEventListener('focusout',e=>{if(e.target.matches('#goal,#sales')){formatAmountField(e.target,true);draftEntry();}});
+document.addEventListener('input',e=>{if(e.target.matches('#goal,#sales')){formatAmountField(e.target);updateEntryPercent();draftEntry();}});
+document.addEventListener('focusout',e=>{if(e.target.matches('#goal,#sales')){formatAmountField(e.target,true);updateEntryPercent();draftEntry();}});
 document.addEventListener('submit',e=>{
  if(e.target.id==='deleteSellerForm'){e.preventDefault();confirmDeleteSeller();return;}
  if(e.target.id==='editSellerForm'){

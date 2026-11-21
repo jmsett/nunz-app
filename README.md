@@ -1,3 +1,9 @@
+## v17 — Cumplimiento al registrar y resumen completo del ranking
+
+- Al registrar ventas, el porcentaje frente a la meta mensual aparece a la derecha del nombre y se actualiza al escribir ventas o meta. Los campos vacíos o inválidos muestran «—».
+- El ranking incluye Cumplimiento, Ventas, Objetivo y Vendedores en pantalla y en el PNG descargado o compartido. En móvil, los cuatro indicadores permanecen juntos y los importes completos con centavos se ajustan a una sola línea.
+- El resumen al pie de los gráficos históricos exportados (Ventas, Meta y Cumplimiento) se muestra en negrita.
+
 ## v16 — Semana del ranking e importes con centavos
 
 - En móvil, los importes de Ventas en el ranking y de Ventas del período y Objetivo del período en el histórico permanecen completos en una línea.
