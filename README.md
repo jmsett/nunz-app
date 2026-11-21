@@ -3,6 +3,7 @@
 - En móvil, los importes de Ventas en el ranking y de Ventas del período y Objetivo del período en el histórico permanecen completos en una línea.
 - Todos los puestos del ranking usan nombre y métricas sobre una barra de ancho completo. Desde el cuarto se conserva el tamaño compacto y el número sin laureles ni corona, también en PNG.
 - El histórico abre por defecto en Valor total (Q); sigue disponible la vista de porcentaje.
+- En móvil, las barras de los puestos 4+ comienzan en la misma columna que las del podio. Los mensajes compartidos empiezan con «Nun'z Laboratorios:»; el histórico indica el año o rango de años mostrado, la vista mensual o anual y si muestra valor total o porcentaje.
 
 - El ranking mensual indica la última semana con ventas registradas del mes seleccionado. La imagen PNG, su nombre y el texto compartido (incluido WhatsApp) llevan el mismo período y el título «Ranking de ventas». Los registros mensuales antiguos sin desglose semanal y el informe anual conservan su período sin inventar una semana.
 - Los importes muestran centavos y usan coma para miles y punto decimal: `Q1,234.56`, tanto en los resúmenes como en el ranking de cada vendedor y las exportaciones.
