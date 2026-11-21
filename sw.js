@@ -1,5 +1,5 @@
 /* Nun’z PWA: caché de archivos de la aplicación, nunca datos del repositorio. */
-const CACHE_NAME = 'nunz-app-shell-v15-ranking-historico-6';
+const CACHE_NAME = 'nunz-app-shell-v16-semana-centavos';
 const APP_SHELL = [
   './', './index.html', './github-sync.js', './manifest.webmanifest',
   './assets/nunz-logo.png',

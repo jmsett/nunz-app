@@ -400,7 +400,28 @@ const STORAGE='nunz-sales-v2';
 const LEGACY_STORAGE='nunz-sales-v1';
 const $=q=>document.querySelector(q);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const money=n=>'Q'+Number(n||0).toLocaleString('es-GT',{maximumFractionDigits:0});
+const money=n=>'Q'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const roundMoney=n=>Math.round((n+Number.EPSILON)*100)/100;
+const amountText=value=>String(value??'').replace(/,/g,'').trim();
+const parseAmount=value=>/^\d+(?:\.\d{0,2})?$/.test(amountText(value))?Number(amountText(value)):NaN;
+function formatAmount(value,complete=false){
+  const raw=amountText(value);
+  if(!raw||!/^\d*(?:\.\d{0,2})?$/.test(raw))return raw;
+  const [integer,fraction]=raw.split('.');
+  const grouped=(integer||'0').replace(/^0+(?=\d)/,'').replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  return grouped+(complete?'.'+(fraction||'').padEnd(2,'0'):fraction!==undefined?'.'+fraction:'');
+}
+function formatAmountField(input,complete=false){
+  const before=input.value,position=input.selectionStart??before.length;
+  const digitsBefore=before.slice(0,position).replace(/,/g,'').length;
+  input.value=formatAmount(before,complete);
+  if(!complete&&document.activeElement===input){
+    let cursor=0,count=0;
+    while(cursor<input.value.length&&count<digitsBefore){if(input.value[cursor]!==',')count++;cursor++;}
+    if(position===before.length)cursor=input.value.length;
+    input.setSelectionRange(cursor,cursor);
+  }
+}
 const pct=n=>`${Math.round(n||0)}%`;
 const ym=(y,m)=>`${y}-${String(m).padStart(2,'0')}`;
 const weekKey=(y,m,w)=>`${ym(y,m)}-S${w}`;
@@ -569,8 +590,8 @@ const active=()=>store.sellers.filter(s=>s.active);
 const seller=id=>store.sellers.find(s=>s.id===id);
 function validRecord(r){return r&&Number.isFinite(Number(r.goal))&&Number(r.goal)>0&&Number.isFinite(Number(r.sales))&&Number(r.sales)>=0;}
 function recordsToRows(recs){return arr(recs).filter(([id,r])=>seller(id)&&validRecord(r)).map(([id,r])=>({id,name:seller(id).name,goal:Number(r.goal),sales:Number(r.sales),percent:Number(r.sales)/Number(r.goal)*100}));}
-function aggregate(rows){return rows.reduce((a,r)=>(a.sales+=Number(r.sales),a.goal+=Number(r.goal),a),{sales:0,goal:0});}
-function sumBySeller(rows){const map=new Map();for(const r of rows){let x=map.get(r.id)||{id:r.id,name:r.name,goal:0,sales:0};x.goal+=r.goal;x.sales+=r.sales;map.set(r.id,x)}return [...map.values()].map(r=>({...r,percent:r.goal?100*r.sales/r.goal:0}));}
+function aggregate(rows){return rows.reduce((a,r)=>(a.sales=roundMoney(a.sales+Number(r.sales)),a.goal=roundMoney(a.goal+Number(r.goal)),a),{sales:0,goal:0});}
+function sumBySeller(rows){const map=new Map();for(const r of rows){let x=map.get(r.id)||{id:r.id,name:r.name,goal:0,sales:0};x.goal=roundMoney(x.goal+r.goal);x.sales=roundMoney(x.sales+r.sales);map.set(r.id,x)}return [...map.values()].map(r=>({...r,percent:r.goal?100*r.sales/r.goal:0}));}
 function goalFor(id,y,m,old={}){
   const monthly=Number((store.monthlyGoals[ym(y,m)]||{})[id]);
   if(Number.isFinite(monthly)&&monthly>0)return monthly;
@@ -586,7 +607,7 @@ function weekSales(id,y,m,w){
 }
 function cumulativeThrough(id,y,m,w){
   let sum=0,seen=false;
-  for(let i=1;i<=w;i++){const v=weekSales(id,y,m,i);if(v!==null){sum+=v;seen=true;}}
+  for(let i=1;i<=w;i++){const v=weekSales(id,y,m,i);if(v!==null){sum=roundMoney(sum+v);seen=true;}}
   return seen?sum:null;
 }
 function monthIds(y,m){
@@ -606,6 +627,16 @@ function annualRows(y){
   return sumBySeller(MONTHS.flatMap((_,i)=>monthRows(y,i+1)));
 }
 function rangeRows(y,m){return ui.rankPeriod==='annual'?annualRows(y):monthRows(y,m);}
+function rankingWeek(){
+  const ids=monthRows(ui.year,ui.month).map(r=>r.id);
+  for(let w=weekCount(ui.year,ui.month);w>=1;w--)if(ids.some(id=>weekSales(id,ui.year,ui.month,w)!==null))return w;
+  return null;
+}
+function rankingPeriodLabel(){
+  if(ui.rankPeriod==='annual')return `Año ${ui.year}`;
+  const week=rankingWeek();
+  return `${MONTHS[ui.month-1]} ${ui.year}${week!==null?` · Semana ${week}`:''}`;
+}
 function filterRows(rows){return ui.filter==='all'?rows:rows.filter(r=>r.id===ui.filter);}
 const icon=(name)=>({
  trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4h10v7a5 5 0 0 1-10 0V4ZM7 6H4v2a4 4 0 0 0 4 4M17 6h3v2a4 4 0 0 1-4 4M12 16v4M7 21h10"/></svg>',
@@ -649,7 +680,7 @@ function ranking(){
   title('Ranking de ventas',ui.rankPeriod==='annual'?'Cumplimiento de objetivos de los meses registrados del año':'Avance acumulado frente al objetivo mensual');
   const rows=rangeRows(ui.year,ui.month).sort((a,b)=>b.percent-a.percent||b.sales-a.sales);
   const team=aggregate(rows),teamPct=team.goal?team.sales/team.goal*100:0;
-  const titlePeriod=ui.rankPeriod==='annual'?`Año ${ui.year}`:`${MONTHS[ui.month-1]} ${ui.year}`;
+  const titlePeriod=rankingPeriodLabel();
   const value=r=>`<span class="rankpercent">${pct(r.percent)}</span><span class="rankamount">${money(r.sales)}</span>`;
   const list=rows.map((r,i)=>{
     const top=i<3;
@@ -909,20 +940,20 @@ function entry(){
   const saved=(store.weeks[entryKey()]||{})[id]||{},d=(store.weekDrafts[entryKey()]||{})[id]||{};
   const monthlyGoal=goalFor(id,ui.year,ui.month,saved);
   const goal=d.goal??(monthlyGoal||'');
-  const sales=d.sales??(saved.sales!==undefined?cumulativeThrough(id,ui.year,ui.month,ui.week):null)??prior??'';
+  const sales=d.sales??(saved.sales!==undefined?cumulativeThrough(id,ui.year,ui.month,ui.week):null)??'';
   const existingLegacy=!!store.records[ym(ui.year,ui.month)]&&!hasWeeklyMonth(ui.year,ui.month);
-  $('#content').innerHTML=`<section class="panel"><div class="controlrow entry-filters">${yearSelect()}${monthSelect()}${weekSelect()}<button type="button" class="btn small secondary today-btn" data-action="goToday">↻ Semana actual</button></div><div class="note"><strong>Meta mensual fija:</strong> indica una sola meta para ${esc(MONTHS[ui.month-1])} y reutilízala en todas las semanas. <strong>Ventas acumuladas:</strong> escribe lo vendido desde el día 1 hasta el cierre de la semana ${ui.week}. El ranking compara el acumulado con el objetivo mensual. El historial guarda sólo el incremento de esta semana y suma las semanas para calcular los meses y años.</div>${existingLegacy?`<p class="note warning">Hay información mensual antigua para este período. Al registrar semanas se mostrará el acumulado semanal y se conservará el registro original en tu respaldo.</p>`:''}${(store.monthlyGoalReview[ym(ui.year,ui.month)]||[]).includes(id)?`<p class="note warning">Este vendedor tiene semanas importadas del formato antiguo, pero no suficientes datos para conocer la meta mensual. Confirma la meta real en el campo siguiente.</p>`:''}<div class="entrymeta"><strong>Vendedor ${ui.entryIndex+1} de ${n}</strong><span>Semana ${ui.week} · ${MONTHS[ui.month-1]} ${ui.year}</span></div><div class="steptrack"><span style="width:${100*ui.entryIndex/n}%"></span></div><div class="entrycard" id="swipeCard"><div class="avatar">👤</div><h2>${esc(seller(id)?.name||'Vendedor')}</h2><div class="subtitle">${esc(dateRange(ui.year,ui.month,ui.week))}</div><div class="field"><label for="goal">Objetivo mensual (Q)</label><input id="goal" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Ej. 100000" value="${esc(goal)}" autocomplete="off"/></div><div class="field"><label for="sales">Ventas acumuladas hasta esta semana (Q)</label><input id="sales" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Ej. 67000" value="${esc(sales)}" autocomplete="off"/></div><div class="note">${prior!==null?`Último acumulado anterior: <strong>${money(prior)}</strong>. `:''}La app guardará únicamente lo vendido en esta semana, calculado restando el acumulado anterior. Puedes corregir la meta mensual aquí.</div></div><div class="entryactions"><button class="btn ghost" data-action="prevEntry" ${ui.entryIndex===0?'disabled':''}>← Anterior</button><button class="btn" data-action="nextEntry">${ui.entryIndex===n-1?'✓ Completar semana':'Guardar y siguiente ←'}</button></div><div class="swipehint">← Desliza la tarjeta hacia la izquierda o usa el botón para continuar</div></section>`;
+  $('#content').innerHTML=`<section class="panel"><div class="controlrow entry-filters">${yearSelect()}${monthSelect()}${weekSelect()}<button type="button" class="btn small secondary today-btn" data-action="goToday">↻ Semana actual</button></div><div class="note"><strong>Meta mensual fija:</strong> indica una sola meta para ${esc(MONTHS[ui.month-1])} y reutilízala en todas las semanas. <strong>Ventas acumuladas:</strong> escribe lo vendido desde el día 1 hasta el cierre de la semana ${ui.week}. El ranking compara el acumulado con el objetivo mensual. El historial guarda sólo el incremento de esta semana y suma las semanas para calcular los meses y años.</div>${existingLegacy?`<p class="note warning">Hay información mensual antigua para este período. Al registrar semanas se mostrará el acumulado semanal y se conservará el registro original en tu respaldo.</p>`:''}${(store.monthlyGoalReview[ym(ui.year,ui.month)]||[]).includes(id)?`<p class="note warning">Este vendedor tiene semanas importadas del formato antiguo, pero no suficientes datos para conocer la meta mensual. Confirma la meta real en el campo siguiente.</p>`:''}<div class="entrymeta"><strong>Vendedor ${ui.entryIndex+1} de ${n}</strong><span>Semana ${ui.week} · ${MONTHS[ui.month-1]} ${ui.year}</span></div><div class="steptrack"><span style="width:${100*ui.entryIndex/n}%"></span></div><div class="entrycard" id="swipeCard"><div class="avatar">👤</div><h2>${esc(seller(id)?.name||'Vendedor')}</h2><div class="subtitle">${esc(dateRange(ui.year,ui.month,ui.week))}</div><div class="field"><label for="goal">Objetivo mensual (Q)</label><input id="goal" type="text" inputmode="decimal" placeholder="Ej. 100,000.00" value="${esc(formatAmount(goal,true))}" autocomplete="off"/></div><div class="field"><label for="sales">Ventas acumuladas hasta esta semana (Q)</label><input id="sales" type="text" inputmode="decimal" placeholder="Ej. 67,000.00" value="${esc(formatAmount(sales,true))}" autocomplete="off"/></div><div class="note">${prior!==null?`Último acumulado anterior: <strong>${money(prior)}</strong>. `:''}La app guardará únicamente lo vendido en esta semana, calculado restando el acumulado anterior. Puedes corregir la meta mensual aquí.</div></div><div class="entryactions"><button class="btn ghost" data-action="prevEntry" ${ui.entryIndex===0?'disabled':''}>← Anterior</button><button class="btn" data-action="nextEntry">${ui.entryIndex===n-1?'✓ Completar semana':'Guardar y siguiente ←'}</button></div><div class="swipehint">← Desliza la tarjeta hacia la izquierda o usa el botón para continuar</div></section>`;
   enableSwipe();
 }
 function draftEntry(){
   if(isReadOnly())return;
   const id=ui.entryIds[ui.entryIndex],a=$('#goal'),b=$('#sales');if(!id||!a||!b)return;
-  (store.weekDrafts[entryKey()]??={})[id]={goal:a.value,sales:b.value};save(false);
+  (store.weekDrafts[entryKey()]??={})[id]={goal:amountText(a.value),sales:amountText(b.value)};save(false);
 }
 function captureEntry(){
   if(!requireEditor())return false;
   const a=$('#goal'),b=$('#sales');if(!a||!b)return false;
-  const goal=Number(a.value),sales=Number(b.value),id=ui.entryIds[ui.entryIndex];
+  const goal=parseAmount(a.value),sales=parseAmount(b.value),id=ui.entryIds[ui.entryIndex];
   if(a.value.trim()===''||b.value.trim()===''||!Number.isFinite(goal)||!Number.isFinite(sales)||goal<=0||sales<0){showToast('Completa meta mensual (> Q0) y ventas acumuladas (≥ Q0)');return false;}
   const prev=previousCumulative(id,ui.year,ui.month,ui.week);
   if(prev!==null&&sales<prev){showToast(`El acumulado no puede ser menor que las ventas anteriores (${money(prev)}). Corrige la semana anterior si hubo un error.`);return false;}
@@ -946,15 +977,15 @@ function nextEntry(){if(!requireEditor() || !captureEntry())return;
     const goal=Number(r.goal),cumulative=Number(r.sales),prior=previousCumulative(id,ui.year,ui.month,ui.week)??0;
     if(!(goal>0)||!Number.isFinite(cumulative)||cumulative<prior){showToast('Revisa las cifras acumuladas antes de completar');return;}
     const nextWeek=nextReportedWeek(id,ui.year,ui.month,ui.week),oldDelta=weekSales(id,ui.year,ui.month,ui.week)??0;
-    const newDelta=cumulative-prior,shift=newDelta-oldDelta;
-    if(nextWeek!==null&&(weekSales(id,ui.year,ui.month,nextWeek)??0)-shift<0){showToast(`El cambio afecta una semana posterior de ${seller(id)?.name}. Corrige los reportes en orden.`);return;}
+    const newDelta=roundMoney(cumulative-prior),shift=roundMoney(newDelta-oldDelta);
+    if(nextWeek!==null&&roundMoney((weekSales(id,ui.year,ui.month,nextWeek)??0)-shift)<0){showToast(`El cambio afecta una semana posterior de ${seller(id)?.name}. Corrige los reportes en orden.`);return;}
     edits.push({id,goal,newDelta,nextWeek,shift});
   }
   store.weeks[k]??={};
   for(const e of edits){
     (store.monthlyGoals[ym(ui.year,ui.month)]??={})[e.id]=e.goal;
     store.weeks[k][e.id]={sales:e.newDelta};
-    if(e.nextWeek!==null)store.weeks[weekKey(ui.year,ui.month,e.nextWeek)][e.id].sales-=e.shift;
+    if(e.nextWeek!==null)store.weeks[weekKey(ui.year,ui.month,e.nextWeek)][e.id].sales=roundMoney(store.weeks[weekKey(ui.year,ui.month,e.nextWeek)][e.id].sales-e.shift);
   }
   delete store.weekDrafts[k];store.weeklySchema='weekly-delta-four-v3';store.lastUpdateDate=localDateISO(new Date());if(!save())return;
   if(store.autoBackupOnWeek!==false && !(cloud&&cloud.cfg.initialized))backup(true);
@@ -990,8 +1021,8 @@ function rankPoster(){
     else{body+=`<rect x="56" y="${y+17}" width="45" height="45" rx="12" fill="#eaf3fa"/><text x="78.5" y="${y+49}" text-anchor="middle" font-size="25" font-weight="800" fill="#0d467f">${i+1}</text><text x="132" y="${y+48}" font-size="${r.name.length>18?19:24}" font-weight="680" fill="#254a75">${esc(r.name.length>19?r.name.slice(0,18)+'…':r.name)}</text><text x="1008" y="${y+49}" font-size="25" text-anchor="end" font-weight="780" fill="#0d467f"><tspan class="rankpercent">${esc(v)}</tspan><tspan class="rankamount" dx="10" font-size="20" font-weight="650" fill="#53708e">${esc(amount)}</tspan></text>${svgBar(375,y+34,390,r.percent)}`;}
     y+=hh+13;
   });
-  const date=ui.rankPeriod==='annual'?`Año ${ui.year}`:`${MONTHS[ui.month-1]} ${ui.year}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}" font-family="Arial,sans-serif"><defs><filter id="softGlow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="1080" height="${h}" fill="#fff"/><rect x="0" y="${h-13}" width="1080" height="13" fill="#dfe900"/><text x="540" y="205" text-anchor="middle" font-size="64" font-weight="850" fill="#083f83">Ranking de Ventas</text><rect x="300" y="223" width="480" height="53" rx="27" fill="#e2eb00"/><text x="540" y="259" text-anchor="middle" font-size="30" fill="#064c91" font-weight="810">${esc(date)}</text><text x="540" y="318" text-anchor="middle" font-style="italic" font-size="28" fill="#73829a">${ui.rankPeriod==='annual'?'Cumplimiento y ventas de meses reportados':'Cumplimiento y ventas del equipo'}</text>${body}<text x="540" y="${h-92}" text-anchor="middle" font-size="36" font-style="italic" font-weight="750" fill="#073f83">¡Sigamos avanzando!</text><path d="M390 ${h-73} Q540 ${h-90} 690 ${h-73}" fill="none" stroke="#dbe900" stroke-width="5"/>${mark(h)}</svg>`;
+  const date=rankingPeriodLabel();
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${h}" viewBox="0 0 1080 ${h}" font-family="Arial,sans-serif"><defs><filter id="softGlow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="1080" height="${h}" fill="#fff"/><rect x="0" y="${h-13}" width="1080" height="13" fill="#dfe900"/><text x="540" y="205" text-anchor="middle" font-size="64" font-weight="850" fill="#083f83">Ranking de Ventas</text><rect x="220" y="223" width="640" height="53" rx="27" fill="#e2eb00"/><text x="540" y="259" text-anchor="middle" font-size="30" fill="#064c91" font-weight="810">${esc(date)}</text><text x="540" y="318" text-anchor="middle" font-style="italic" font-size="28" fill="#73829a">${ui.rankPeriod==='annual'?'Cumplimiento y ventas de meses reportados':'Cumplimiento y ventas del equipo'}</text>${body}<text x="540" y="${h-92}" text-anchor="middle" font-size="36" font-style="italic" font-weight="750" fill="#073f83">¡Sigamos avanzando!</text><path d="M390 ${h-73} Q540 ${h-90} 690 ${h-73}" fill="none" stroke="#dbe900" stroke-width="5"/>${mark(h)}</svg>`;
 }
 function chartPoster(){
  if(ui.chartStyle==='table')return tablePoster();
@@ -1010,7 +1041,7 @@ function chartPoster(){
  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${height}" viewBox="0 0 1080 ${height}" font-family="Arial,sans-serif"><rect width="1080" height="${height}" fill="white"/><rect width="1080" height="11" fill="#e1eb00"/><text x="540" y="180" font-size="49" text-anchor="middle" font-weight="850" fill="#073f83">Progreso Histórico de Ventas</text><text x="540" y="232" text-anchor="middle" fill="#74839a" font-size="25">${esc(detail)} · ${esc(name)}</text><text x="55" y="276" fill="#073f83" font-size="22" font-weight="700">${ui.mode==='percent'?'Cumplimiento':'Ventas'} · ${ui.chartStyle==='points'?'Puntos + línea':'Barras'}</text>${legend}${graph}<text x="540" y="${height-67}" fill="#073f83" text-anchor="middle" font-size="21">Ventas: ${money(a.sales)}  ·  Meta: ${money(a.goal)}  ·  Cumplimiento: ${pct(a.goal?100*a.sales/a.goal:0)}</text>${mark(height)}</svg>`;
 }
 // A share sheet when supported on iOS; otherwise a normal PNG download.
-async function renderPNG(svg,filename,share){
+async function renderPNG(svg,filename,share,shareDetails={title:'Nun’z Laboratorios'}){
  try{
   const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'}),url=URL.createObjectURL(blob);
   const img=await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=url;});
@@ -1022,7 +1053,7 @@ async function renderPNG(svg,filename,share){
   if(!png)throw Error('canvas');
   const file=new File([png],filename+'.png',{type:'image/png'});
   if(share&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-    try{await navigator.share({files:[file],title:'Nun’z Laboratorios'});return;}catch(e){if(e.name==='AbortError')return;}
+    try{await navigator.share({files:[file],...shareDetails});return;}catch(e){if(e.name==='AbortError')return;}
   }
   const objectURL=URL.createObjectURL(png),a=document.createElement('a');a.href=objectURL;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(objectURL),4000);
   showToast('Imagen PNG preparada');
@@ -1075,7 +1106,7 @@ document.addEventListener('click',e=>{
     case 'ghDisconnect':if(prompt('Desvincular detendrá la sincronización en este dispositivo. Escribe DESVINCULAR para confirmar:')==='DESVINCULAR')cloud?.disconnect();break;
     case 'nextEntry':nextEntry();break;
     case 'prevEntry':prevEntry();break;
-    case 'exportRank':case 'shareRank':if(rangeRows(ui.year,ui.month).length)renderPNG(rankPoster(),`Nunz_Ranking_${ui.rankPeriod==='annual'?ui.year:ym(ui.year,ui.month)}_${ui.rankPeriod}`,action.dataset.action==='shareRank');else showToast('No hay resultados para exportar');break;
+    case 'exportRank':case 'shareRank':if(rangeRows(ui.year,ui.month).length)renderPNG(rankPoster(),`Nunz_Ranking_${ui.rankPeriod==='annual'?ui.year:ym(ui.year,ui.month)}_${ui.rankPeriod}${ui.rankPeriod==='month'&&rankingWeek()!==null?`_Semana_${rankingWeek()}`:''}`,action.dataset.action==='shareRank',{title:'Ranking de ventas · Nun’z Laboratorios',text:`Ranking de ventas · ${rankingPeriodLabel()}`});else showToast('No hay resultados para exportar');break;
     case 'exportChart':case 'shareChart':renderPNG(chartPoster(),`Nunz_Progreso_${ui.chartPeriod}_${ui.year}_${ui.mode}`,action.dataset.action==='shareChart');break;
     case 'backup':backup();break;
     case 'goToday':Object.assign(ui,currentPeriod());startEntry();showToast('Se seleccionó el período actual');break;
@@ -1093,7 +1124,8 @@ document.addEventListener('change',e=>{
   if(id==='sellerFilter'){ui.filter=v;render();return;}
 });
 document.addEventListener('toggle',e=>{if(e.target.id==='advancedSettings')ui.adminExpanded=e.target.open;},true);
-document.addEventListener('input',e=>{if(e.target.matches('#goal,#sales'))draftEntry();});
+document.addEventListener('input',e=>{if(e.target.matches('#goal,#sales')){formatAmountField(e.target);draftEntry();}});
+document.addEventListener('focusout',e=>{if(e.target.matches('#goal,#sales')){formatAmountField(e.target,true);draftEntry();}});
 document.addEventListener('submit',e=>{
  if(e.target.id==='deleteSellerForm'){e.preventDefault();confirmDeleteSeller();return;}
  if(e.target.id==='editSellerForm'){

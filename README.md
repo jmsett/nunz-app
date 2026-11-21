@@ -1,3 +1,10 @@
+## v16 — Semana del ranking e importes con centavos
+
+- El ranking mensual indica la última semana con ventas registradas del mes seleccionado. La imagen PNG, su nombre y el texto compartido (incluido WhatsApp) llevan el mismo período y el título «Ranking de ventas». Los registros mensuales antiguos sin desglose semanal y el informe anual conservan su período sin inventar una semana.
+- Los importes muestran centavos y usan coma para miles y punto decimal: `Q1,234.56`, tanto en los resúmenes como en el ranking de cada vendedor y las exportaciones.
+- Al abrir una semana nueva, las ventas quedan vacías. Se conservan los borradores de esa semana y los valores guardados al corregir reportes existentes. La meta mensual se reutiliza dentro del mismo mes; un mes nuevo sin datos empieza con la meta vacía.
+- Los campos de objetivo y ventas separan automáticamente los miles al escribir y completan los dos decimales al salir. El registro sigue siendo acumulado desde el día 1 del mes, con incrementos semanales almacenados a precisión de centavos.
+
 ## v15 — Ranking e histórico adaptados a móvil
 
 Ajustes de presentación: resúmenes centrados y labels del ranking simplificados a Cumplimiento, Ventas y Vendedores. En el histórico en Q, el objetivo usa azul y las ventas amarillo, tanto en barras como en líneas y PNG, con leyendas correspondientes. En móvil y tablet, el período queda a la izquierda, centrado verticalmente junto a las tres columnas de Ventas, Objetivo y Cumplimiento. El ranking agrupa el porcentaje grande inmediatamente a la izquierda del monto pequeño, alineados a la derecha, también en PNG.
